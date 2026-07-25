@@ -13,12 +13,10 @@ import VercelDeploy from "../features/integrations/components/deployment/VercelD
 import NetlifyDeploy from "../features/integrations/components/deployment/NetlifyDeploy";
 import CloudflareDeploy from "../features/integrations/components/deployment/CloudflareDeploy";
 import CustomDeploy from "../features/integrations/components/deployment/CustomDeploy";
-import FirebaseSync from "../features/integrations/components/cloud/FirebaseSync";
-import AppwriteSync from "../features/integrations/components/cloud/AppwriteSync";
-import CustomDbSync from "../features/integrations/components/cloud/CustomDbSync";
+import EnvironmentSecretsPanel from "./sidebar/EnvironmentSecretsPanel";
 
 interface IntegrationsPanelProps {
-  mode: "github" | "deployment" | "cloud";
+  mode: "github" | "deployment" | "secrets";
   token: string | null;
   user: any;
   onLogout: () => void;
@@ -480,67 +478,11 @@ export default function IntegrationsPanel({
         </>
       )}
 
-      {/* ================== 3. CLOUD SERVICES & DATABASE MODE PANEL ================== */}
-      {mode === "cloud" && (
-        <>
-          {/* Inner tab switcher */}
-          <div className="p-2 border-b border-zinc-850/60 bg-zinc-950 flex gap-1 overflow-x-auto no-scrollbar shrink-0">
-            {["firebase", "appwrite", "custom"].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveCloudTab(tab as any)}
-                className={`flex-1 min-w-[65px] py-1.5 px-1 rounded-lg text-[9.5px] font-mono font-bold uppercase cursor-pointer transition-all ${
-                  activeCloudTab === tab ? "bg-zinc-850 text-white" : "text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/50"
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-3.5 space-y-4 no-scrollbar">
-            {activeCloudTab === "firebase" && (
-              <FirebaseSync
-                firebaseProjectId={firebaseProjectId}
-                setFirebaseProjectId={setFirebaseProjectId}
-                firebaseConfigJson={firebaseConfigJson}
-                setFirebaseConfigJson={setFirebaseConfigJson}
-                firebaseStatus={firebaseStatus}
-                firebaseCollections={firebaseCollections}
-                firebaseError={firebaseError}
-                verifyFirebase={verifyFirebase}
-                handleDisconnectFirebase={handleDisconnectFirebase}
-              />
-            )}
-
-            {activeCloudTab === "appwrite" && (
-              <AppwriteSync
-                appwriteEndpoint={appwriteEndpoint}
-                setAppwriteEndpoint={setAppwriteEndpoint}
-                appwriteProjectId={appwriteProjectId}
-                setAppwriteProjectId={setAppwriteProjectId}
-                appwriteApiKey={appwriteApiKey}
-                setAppwriteApiKey={setAppwriteApiKey}
-                appwriteStatus={appwriteStatus}
-                appwriteCollections={appwriteCollections}
-                verifyAppwrite={verifyAppwrite}
-                handleDisconnectAppwrite={handleDisconnectAppwrite}
-              />
-            )}
-
-            {activeCloudTab === "custom" && (
-              <CustomDbSync
-                customDbType={customDbType}
-                setCustomDbType={setCustomDbType}
-                customDbUri={customDbUri}
-                setCustomDbUri={setCustomDbUri}
-                customDbStatus={customDbStatus}
-                handleConnectCustomDb={handleConnectCustomDb}
-                handleDisconnectCustomDb={handleDisconnectCustomDb}
-              />
-            )}
-          </div>
-        </>
+      {/* ================== 3. ENVIRONMENT SECRETS MODE PANEL ================== */}
+      {mode === "secrets" && (
+        <div className="flex-1 overflow-y-auto p-3.5 space-y-4 no-scrollbar">
+          <EnvironmentSecretsPanel accentColor={accentColor} />
+        </div>
       )}
 
     </div>

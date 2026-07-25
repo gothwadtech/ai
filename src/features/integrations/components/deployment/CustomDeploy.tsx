@@ -74,7 +74,7 @@ export default function CustomDeploy({
           <div className="bg-zinc-950 border border-zinc-900 rounded-xl p-3 text-[10.5px] font-mono text-zinc-400 space-y-1.5">
             <p className="text-zinc-200 font-bold">Active Deployment Endpoint:</p>
             <p className="truncate text-emerald-500">{customDeployUrl}</p>
-            <p className="text-[9px] text-zinc-500">Hook Trigger Action is ready. Gothwad Ai Studio will post ZIP payloads to this endpoint on sync commands.</p>
+            <p className="text-[9px] text-zinc-500">Hook Trigger Action is ready. Gothwad Tech AI will post ZIP payloads to this endpoint on sync commands.</p>
           </div>
 
           <button

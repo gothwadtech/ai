@@ -216,7 +216,7 @@ export default function ExplorerPanel({
         </div>
         <h3 className="text-zinc-200 text-[10.5px] font-bold font-mono uppercase tracking-wider">{tabName} Offline</h3>
         <p className="text-zinc-500 text-[9.5px] font-mono leading-relaxed">
-          Gothwad Ai Studio requires an authorized connection to GitHub to browse repositories, explore files, or stage ZIP modifications in {tabName}.
+          Gothwad Tech AI requires an authorized connection to GitHub to browse repositories, explore files, or stage ZIP modifications in {tabName}.
         </p>
         <button
           onClick={() => onSelectSection?.("github")}

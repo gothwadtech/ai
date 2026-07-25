@@ -59,7 +59,7 @@ interface CompanionSession {
   maxTokens: number;
 }
 
-const DEFAULT_SYSTEM_INSTRUCTION = "You are Gothwad AI, an elite, ultra-responsive coding companion integrated directly into Gothwad Ai Studio. You are styled like Cursor, Windsurf, and Google AI Studio to give the ultimate developer workspace experience.";
+const DEFAULT_SYSTEM_INSTRUCTION = "You are Gothwad AI, an elite, ultra-responsive coding companion integrated directly into Gothwad Tech AI. You are styled like Cursor, Windsurf, and Google AI Studio to give the ultimate developer workspace experience.";
 
 const createNewSessionTemplate = (id: string, index: number): CompanionSession => ({
   id,
@@ -426,21 +426,7 @@ export default function AiCompanionPanel({
   };
 
   if (!isOpen) {
-    return (
-      <button
-        id="btn-open-ai-companion"
-        onClick={onToggle}
-        className="fixed right-4 bottom-14 z-40 p-3.5 rounded-full bg-zinc-900 border border-zinc-800 hover:border-zinc-700 shadow-2xl transition-all hover:scale-105 duration-200 group flex items-center gap-2 text-zinc-200 active:scale-95 cursor-pointer"
-        title="Open AI Companion"
-        style={{ boxShadow: `0 0 20px ${accentColor}25` }}
-      >
-        <div className="relative">
-          <Sparkles className="w-5 h-5 text-zinc-300 group-hover:text-amber-400 animate-pulse" />
-          <span className="absolute top-0 right-0 w-2 h-2 rounded-full bg-green-500 ring-2 ring-zinc-900" />
-        </div>
-        <span className="text-xs font-medium tracking-tight pr-1">Gothwad AI</span>
-      </button>
-    );
+    return null;
   }
 
   return (

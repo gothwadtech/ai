@@ -39,7 +39,7 @@ export default function GitHubConnector({
           <div>
             <h3 className="text-xs font-bold text-white uppercase tracking-tight">Connect GitHub</h3>
             <p className="text-[9.5px] text-zinc-500 mt-1 leading-normal">
-              Connect Gothwad Studio to your GitHub to import code repositories, save edits, deploy web builders, and backup files.
+              Connect Gothwad Tech AI to your GitHub to import code repositories, save edits, deploy web builders, and backup files.
             </p>
           </div>
         </div>
@@ -119,7 +119,7 @@ export default function GitHubConnector({
           <span>Universal Studio Session is Active</span>
         </div>
         <p className="text-zinc-400 text-[9.5px] leading-relaxed">
-          Your entire Gothwad AI Studio workspace is authenticated and connected globally. This single session powers the workspace files explorer, code editor commits, unpacker, AI generation loops, and database synchronizations.
+          Your entire Gothwad Tech AI workspace is authenticated and connected globally. This single session powers the workspace files explorer, code editor commits, unpacker, AI generation loops, and database synchronizations.
         </p>
       </div>
 
@@ -218,7 +218,7 @@ export default function GitHubConnector({
           Disconnect Universal Session
         </button>
         <p className="text-[8.5px] text-zinc-600 text-center leading-normal">
-          Disconnecting will securely remove the authorization keys from local cache and lock the Gothwad AI Studio workstation.
+          Disconnecting will securely remove the authorization keys from local cache and lock the Gothwad Tech AI workstation.
         </p>
       </div>
 

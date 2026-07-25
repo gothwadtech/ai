@@ -63,7 +63,7 @@ export default function StatusBar({
             {selectedRepo.full_name}
           </span>
         ) : (
-          <span>Welcome to Gothwad Ai Studio</span>
+          <span>Welcome to Gothwad Tech AI</span>
         )}
       </div>
 

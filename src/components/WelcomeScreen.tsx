@@ -42,7 +42,7 @@ export default function WelcomeScreen({
           <div className="flex items-center justify-center sm:justify-start gap-2.5">
             <div>
               <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-zinc-100 font-mono">
-                Gothwad Ai Studio <span className="text-[#375a7f] text-xs font-semibold px-2 py-0.5 rounded-full bg-[#375a7f]/10 border border-[#375a7f]/15 uppercase font-sans tracking-widest">VS Code v1.2</span>
+                Gothwad Tech AI <span className="text-[#375a7f] text-xs font-semibold px-2 py-0.5 rounded-full bg-[#375a7f]/10 border border-[#375a7f]/15 uppercase font-sans tracking-widest">VS Code v1.2</span>
               </h1>
               <p className="text-zinc-500 text-xs font-mono mt-0.5">Desktop Git Sandbox Compiler & ZIP Sync workspace</p>
             </div>
@@ -167,7 +167,7 @@ export default function WelcomeScreen({
 
         {/* 4. Footer keyboard command status lines */}
         <div className="pt-4 border-t border-zinc-900 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-[10px] font-mono text-zinc-650">
-          <span>Gothwad Ai Studio Sandbox • v1.2.0 CJS Bundle</span>
+          <span>Gothwad Tech AI Sandbox • v1.2.0 CJS Bundle</span>
           <div className="flex gap-3">
             <span>[Ctrl + S] Save File</span>
             <span>[F1] Help Console</span>

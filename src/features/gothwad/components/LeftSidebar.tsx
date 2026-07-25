@@ -30,6 +30,7 @@ interface LeftSidebarProps {
   onDeleteSession: (sessionId: string) => void;
   onClearSessions: () => void;
   onToggleSidebar?: () => void;
+  onOpenPrimarySidebar?: () => void;
 }
 
 export default function LeftSidebar({
@@ -40,18 +41,25 @@ export default function LeftSidebar({
   onNewSession,
   onDeleteSession,
   onClearSessions,
-  onToggleSidebar
+  onToggleSidebar,
+  onOpenPrimarySidebar
 }: LeftSidebarProps) {
   return (
     <div className="w-[260px] bg-zinc-900 border-r border-zinc-850 flex flex-col shrink-0 h-full overflow-hidden select-none">
       {/* Header */}
       <div className="h-13 px-3 flex items-center justify-between border-b border-zinc-850 bg-zinc-930/40 shrink-0">
         <div className="flex items-center gap-2 min-w-0">
-          {onToggleSidebar && (
+          {(onOpenPrimarySidebar || onToggleSidebar) && (
             <button
-              onClick={onToggleSidebar}
+              onClick={() => {
+                if (onOpenPrimarySidebar) {
+                  onOpenPrimarySidebar();
+                } else if (onToggleSidebar) {
+                  onToggleSidebar();
+                }
+              }}
               className="p-1.5 bg-zinc-950 hover:bg-zinc-850 text-zinc-400 hover:text-zinc-250 border border-zinc-800 rounded-lg transition-all cursor-pointer flex items-center justify-center shrink-0 active:scale-95"
-              title="Back"
+              title="Back to Primary Sidebar"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
             </button>

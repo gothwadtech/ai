@@ -6,22 +6,15 @@ import SettingsPanel from "./sidebar/SettingsPanel";
 import ExplorerPanel from "./sidebar/ExplorerPanel";
 import SourceControlPanel from "./sidebar/SourceControlPanel";
 
-const ChatStudio = React.lazy(() => import("../features/chat/ChatStudio"));
+import AiCompanionPanel from "./AiCompanionPanel";
 const CodeEditor = React.lazy(() => import("./CodeEditor"));
 const WelcomeScreen = React.lazy(() => import("./WelcomeScreen"));
 const AppPreviewPanel = React.lazy(() => import("./AppPreviewPanel"));
-const AiCompanionPanel = React.lazy(() => import("./AiCompanionPanel"));
 const IntegrationsPanel = React.lazy(() => import("./IntegrationsPanel"));
 
-const GothwadStudio = React.lazy(() => import("../features/gothwad/components/GothwadStudio"));
-const ChatPlaygroundStudio = React.lazy(() => import("../features/chat/components/ChatPlaygroundStudio"));
-const VoiceStudio = React.lazy(() => import("../features/voice/components/VoiceStudio"));
-const ImageGenStudio = React.lazy(() => import("../features/image/components/ImageGenStudio"));
-const VideoGenStudio = React.lazy(() => import("../features/video/components/VideoGenStudio"));
-const AudioGenStudio = React.lazy(() => import("../features/audio/components/AudioGenStudio"));
-const PresentationStudio = React.lazy(() => import("../features/presentation/components/PresentationStudio"));
-const WebsiteStudio = React.lazy(() => import("../features/website/components/WebsiteStudio"));
-const WebAppStudio = React.lazy(() => import("../features/webapp/components/WebAppStudio"));
+import GothwadStudio from "../features/gothwad/components/GothwadStudio";
+import ImageGenStudio from "../features/image/components/ImageGenStudio";
+import VideoGenStudio from "../features/video/components/VideoGenStudio";
 import { safeStorage } from "../utils/safeStorage";
 import {
   X,
@@ -52,7 +45,7 @@ interface MobileLayoutProps {
   isMobile: boolean;
   mobileActiveTab: "explorer" | "editor" | "git" | "preview" | "ai" | "settings";
   setMobileActiveTab: (tab: "explorer" | "editor" | "git" | "preview" | "ai" | "settings") => void;
-  activeSection: "explorer" | "source_control" | "unpacker" | "settings" | "github" | "deployment" | "cloud";
+  activeSection: "explorer" | "source_control" | "unpacker" | "settings" | "github" | "deployment" | "secrets";
   setActiveSection: (section: any) => void;
   user: any;
   repos: any[];
@@ -178,40 +171,10 @@ export default function MobileLayout({
     switch (activeMainOption) {
       case "gothwad_ai":
         return <GothwadStudio accentColor={accentColor} customApiKey={customApiKey} onToggleSidebar={openMobileMenu} />;
-      case "chat":
-        return (
-          <ChatStudio 
-            accentColor={accentColor} 
-            isMobile={isMobile} 
-            onOpenMenu={openMobileMenu}
-            onToggleSidebar={openMobileMenu}
-            onBackToMain={() => { safeStorage.setItem("gothwad_gothwad_ai_show_left_sidebar", "false"); setActiveMainOption?.("gothwad_ai"); }}
-            sessions={chatSessions}
-            activeSessionId={activeChatSessionId}
-            onSetActiveSessionId={onSetActiveChatSessionId}
-            onUpdateSessions={onUpdateChatSessions}
-            customApiKey={customApiKey}
-            onSetCustomApiKey={onSetCustomApiKey}
-            groqApiKey={groqApiKey}
-            onSetGroqApiKey={onSetGroqApiKey}
-            appModels={appModels}
-            onUpdateAppModels={onUpdateAppModels}
-          />
-        );
-      case "voice_assistant":
-        return <VoiceStudio accentColor={accentColor} isMobile={isMobile} onToggleSidebar={openMobileMenu} onBackToMain={() => { safeStorage.setItem("gothwad_gothwad_ai_show_left_sidebar", "false"); setActiveMainOption?.("gothwad_ai"); }} />;
       case "image_gen":
         return <ImageGenStudio accentColor={accentColor} isMobile={isMobile} onToggleSidebar={openMobileMenu} onBackToMain={() => { safeStorage.setItem("gothwad_gothwad_ai_show_left_sidebar", "false"); setActiveMainOption?.("gothwad_ai"); }} />;
       case "video_gen":
         return <VideoGenStudio accentColor={accentColor} isMobile={isMobile} onToggleSidebar={openMobileMenu} onBackToMain={() => { safeStorage.setItem("gothwad_gothwad_ai_show_left_sidebar", "false"); setActiveMainOption?.("gothwad_ai"); }} />;
-      case "audio_gen":
-        return <AudioGenStudio accentColor={accentColor} isMobile={isMobile} onToggleSidebar={openMobileMenu} onBackToMain={() => { safeStorage.setItem("gothwad_gothwad_ai_show_left_sidebar", "false"); setActiveMainOption?.("gothwad_ai"); }} />;
-      case "presentation_ai":
-        return <PresentationStudio accentColor={accentColor} isMobile={isMobile} onToggleSidebar={openMobileMenu} onBackToMain={() => { safeStorage.setItem("gothwad_gothwad_ai_show_left_sidebar", "false"); setActiveMainOption?.("gothwad_ai"); }} />;
-      case "website_builder_ai":
-        return <WebsiteStudio accentColor={accentColor} isMobile={isMobile} onToggleSidebar={openMobileMenu} onBackToMain={() => { safeStorage.setItem("gothwad_gothwad_ai_show_left_sidebar", "false"); setActiveMainOption?.("gothwad_ai"); }} />;
-      case "web_app_builder_ai":
-        return <WebAppStudio accentColor={accentColor} isMobile={isMobile} onToggleSidebar={openMobileMenu} onBackToMain={() => { safeStorage.setItem("gothwad_gothwad_ai_show_left_sidebar", "false"); setActiveMainOption?.("gothwad_ai"); }} />;
       default:
         return <GothwadStudio accentColor={accentColor} customApiKey={customApiKey} onToggleSidebar={openMobileMenu} />;
     }
@@ -232,6 +195,9 @@ export default function MobileLayout({
           handleThemeModeChange={onThemeModeChange}
           selectRepo={selectRepo}
           logout={logout}
+          onSwitchToProjectsAI={() => {
+            setMobileActiveTab("ai");
+          }}
         />
       )}
 
@@ -328,19 +294,19 @@ export default function MobileLayout({
                   </div>
                 )}
 
-                {activeSection === "cloud" && (
+                {activeSection === "secrets" && (
                   <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-zinc-955">
                     <div className="flex items-center justify-between border-b border-zinc-850 pb-2 mb-2">
-                      <h2 className="text-xs font-mono font-bold tracking-tight text-zinc-300 uppercase">Cloud Services & DB</h2>
+                      <h2 className="text-xs font-mono font-bold tracking-tight text-zinc-300 uppercase">Environment Secrets</h2>
                     </div>
                     <React.Suspense fallback={
                       <div className="flex h-32 flex-col items-center justify-center gap-2 text-zinc-500 font-mono text-xs">
                         <div className="h-4 w-4 animate-spin rounded-full border-t border-zinc-500" style={{ borderTopColor: accentColor }} />
-                        <span className="animate-pulse text-[10px]">LOADING CLOUD GATEWAY...</span>
+                        <span className="animate-pulse text-[10px]">LOADING SECRETS VAULT...</span>
                       </div>
                     }>
                       <IntegrationsPanel
-                        mode="cloud"
+                        mode="secrets"
                         token={token}
                         user={user}
                         onLogout={logout}
@@ -411,6 +377,10 @@ export default function MobileLayout({
                       onSetGroqApiKey={onSetGroqApiKey}
                       appModels={appModels}
                       onUpdateAppModels={onUpdateAppModels}
+                      onSelectSection={(sec) => {
+                        setActiveSection(sec);
+                        setMobileActiveTab("explorer");
+                      }}
                     />
                   </div>
                 )}
@@ -533,29 +503,22 @@ export default function MobileLayout({
 
             {mobileActiveTab === "ai" && (
               <div className="flex-1 flex flex-col bg-zinc-950 overflow-hidden relative">
-                <React.Suspense fallback={
-                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-zinc-950 font-sans text-xs text-zinc-500 tracking-wider">
-                    <div className="h-4 w-4 animate-spin rounded-full border-t border-zinc-500" style={{ borderTopColor: accentColor }} />
-                    <span className="font-mono text-[9px] animate-pulse">LOADING AI ASSISTANT...</span>
-                  </div>
-                }>
-                  <AiCompanionPanel
-                    isOpen={true}
-                    onToggle={() => {}}
-                    activeFile={activeFile}
-                    fileSystemTree={fileSystemTree}
-                    onApplyCode={(code) => {
-                      updateEditor(code);
-                      setMobileActiveTab("editor");
-                    }}
-                    accentColor={accentColor}
-                    appModels={appModels}
-                    customApiKey={customApiKey}
-                    groqApiKey={groqApiKey}
-                    isMobile={true}
-                    onOpenMenu={() => setIsLeftDrawerOpen(true)}
-                  />
-                </React.Suspense>
+                <AiCompanionPanel
+                  isOpen={true}
+                  onToggle={() => {}}
+                  activeFile={activeFile}
+                  fileSystemTree={fileSystemTree}
+                  onApplyCode={(code) => {
+                    updateEditor(code);
+                    setMobileActiveTab("editor");
+                  }}
+                  accentColor={accentColor}
+                  appModels={appModels}
+                  customApiKey={customApiKey}
+                  groqApiKey={groqApiKey}
+                  isMobile={true}
+                  onOpenMenu={() => setIsLeftDrawerOpen(true)}
+                />
               </div>
             )}
           </>

@@ -1,5 +1,5 @@
 {
-  "name": "Gothwad Ai Studio",
+  "name": "Gothwad Tech AI",
   "description": "An advanced coding application integrated directly with GitHub.",
   "requestFramePermissions": ["microphone"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

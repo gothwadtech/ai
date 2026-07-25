@@ -1,15 +1,7 @@
 import React from "react";
 import { Cpu } from "lucide-react";
 import ChatMessageBubble from "../../../../components/ChatMessageBubble";
-
-interface Message {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  timestamp: Date;
-  agent?: string;
-  keyStatus?: "custom" | "server" | "missing";
-}
+import { Message } from "../types";
 
 interface ChatMessageListProps {
   messages: Message[];

@@ -47,7 +47,7 @@ export function useOAuth(
     );
 
     if (!oauthWindow) {
-      alert("Popup Blocked! Please allow popups so Gothwad Ai Studio can securely authenticate your GitHub account.");
+      alert("Popup Blocked! Please allow popups so Gothwad Tech AI can securely authenticate your GitHub account.");
     }
   };
 
@@ -68,7 +68,7 @@ export function useOAuth(
     
     if (code) {
       window.history.replaceState({}, document.title, window.location.pathname);
-      alert("GitHub Serverless Callback: OAuth token exchange requires a server backend. Since Gothwad Ai Studio is now running in 100% Client-Side Serverless mode for top-notch privacy, please use a GitHub Personal Access Token (PAT) to connect.");
+      alert("GitHub Serverless Callback: OAuth token exchange requires a server backend. Since Gothwad Tech AI is now running in 100% Client-Side Serverless mode for top-notch privacy, please use a GitHub Personal Access Token (PAT) to connect.");
     }
 
     return () => {

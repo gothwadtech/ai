@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Cpu, X, PlusCircle, Plus, Sparkles, Trash2 } from "lucide-react";
+import { Cpu, X, Plus, Zap } from "lucide-react";
 import { safeStorage } from "../../../utils/safeStorage";
+import { PROVIDERS, fetchModelsFromProvider, FetchedModel } from "../../../services/providerModels";
+import ModelTabEngines from "./model/ModelTabEngines";
+import ModelTabManual from "./model/ModelTabManual";
+import ModelTabAutoFetch from "./model/ModelTabAutoFetch";
 
 export interface GothwadModelItem {
   id: string;
@@ -26,6 +30,8 @@ interface GothwadModelProps {
   isOpen: boolean;
 }
 
+type TabType = "engines" | "auto_fetch" | "manual";
+
 export default function GothwadModel({
   accentColor,
   selectedModel,
@@ -33,6 +39,8 @@ export default function GothwadModel({
   onClose,
   isOpen
 }: GothwadModelProps) {
+  const [activeTab, setActiveTab] = useState<TabType>("engines");
+
   const [customModels, setCustomModels] = useState<GothwadModelItem[]>(() => {
     try {
       const saved = safeStorage.getItem("gothwad_custom_models");
@@ -46,6 +54,26 @@ export default function GothwadModel({
   const [customModelName, setCustomModelName] = useState("");
   const [customModelDesc, setCustomModelDesc] = useState("");
   const [customError, setCustomError] = useState<string | null>(null);
+
+  const [selectedProviderId, setSelectedProviderId] = useState<string>("openrouter");
+  const [providerKeyInput, setProviderKeyInput] = useState<string>("");
+  const [providerEndpointInput, setProviderEndpointInput] = useState<string>("");
+  const [isFetchingModels, setIsFetchingModels] = useState<boolean>(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [fetchedModels, setFetchedModels] = useState<FetchedModel[]>([]);
+  const [selectedFetchedIds, setSelectedFetchedIds] = useState<Set<string>>(new Set());
+  
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [filterType, setFilterType] = useState<"all" | "free" | "coding">("all");
+  const [importSuccessMsg, setImportSuccessMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    const p = PROVIDERS.find(p => p.id === selectedProviderId) || PROVIDERS[0];
+    const savedKey = p.keyStorageKey ? safeStorage.getItem(p.keyStorageKey) || "" : "";
+    setProviderKeyInput(savedKey);
+    setProviderEndpointInput(p.defaultEndpoint);
+    setFetchError(null);
+  }, [selectedProviderId]);
 
   useEffect(() => {
     try {
@@ -86,11 +114,11 @@ export default function GothwadModel({
     setCustomModels(prev => [...prev, newModel]);
     onSelectModel(trimmedId);
 
-    // Reset inputs
     setCustomModelId("");
     setCustomModelName("");
     setCustomModelDesc("");
     setCustomError(null);
+    setActiveTab("engines");
   };
 
   const handleDeleteCustomModel = (id: string, e: React.MouseEvent) => {
@@ -101,159 +129,241 @@ export default function GothwadModel({
     }
   };
 
+  const handleRunAutoFetch = async () => {
+    setIsFetchingModels(true);
+    setFetchError(null);
+    setImportSuccessMsg(null);
+    setFetchedModels([]);
+    setSelectedFetchedIds(new Set());
+
+    const p = PROVIDERS.find(prov => prov.id === selectedProviderId);
+
+    if (providerKeyInput.trim() && p?.keyStorageKey) {
+      safeStorage.setItem(p.keyStorageKey, providerKeyInput.trim());
+    }
+
+    try {
+      const models = await fetchModelsFromProvider(
+        selectedProviderId,
+        providerKeyInput,
+        providerEndpointInput
+      );
+      setFetchedModels(models);
+
+      const defaultSelected = new Set<string>();
+      models.slice(0, 30).forEach(m => defaultSelected.add(m.id));
+      setSelectedFetchedIds(defaultSelected);
+
+      if (models.length === 0) {
+        setFetchError("No models were returned by the provider API.");
+      }
+    } catch (err: any) {
+      setFetchError(err.message || "Failed to fetch models from provider.");
+    } finally {
+      setIsFetchingModels(false);
+    }
+  };
+
+  const toggleSelectFetchedModel = (id: string) => {
+    setSelectedFetchedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const filteredFetchedModels = fetchedModels.filter(m => {
+    const matchesSearch = 
+      m.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      m.desc.toLowerCase().includes(searchQuery.toLowerCase());
+
+    if (!matchesSearch) return false;
+
+    if (filterType === "free") {
+      return m.isFree || m.id.includes(":free") || m.tag === "Free";
+    }
+    if (filterType === "coding") {
+      const lower = m.id.toLowerCase();
+      return lower.includes("code") || lower.includes("coder") || lower.includes("deepseek") || lower.includes("llama-3.3") || lower.includes("qwen") || lower.includes("sonnet");
+    }
+    return true;
+  });
+
+  const handleSelectAllFiltered = () => {
+    setSelectedFetchedIds(prev => {
+      const next = new Set(prev);
+      filteredFetchedModels.forEach(m => next.add(m.id));
+      return next;
+    });
+  };
+
+  const handleDeselectAll = () => {
+    setSelectedFetchedIds(new Set());
+  };
+
+  const handleImportSelected = () => {
+    const modelsToImport = fetchedModels.filter(m => selectedFetchedIds.has(m.id));
+    if (modelsToImport.length === 0) return;
+
+    const existingIds = new Set([
+      ...BASE_SUPPORTED_MODELS.map(m => m.id),
+      ...customModels.map(m => m.id)
+    ]);
+
+    const newItems: GothwadModelItem[] = [];
+
+    modelsToImport.forEach(m => {
+      if (!existingIds.has(m.id)) {
+        newItems.push({
+          id: m.id,
+          name: m.name,
+          desc: m.desc,
+          tag: m.tag || "Auto",
+          isCustom: true
+        });
+        existingIds.add(m.id);
+      }
+    });
+
+    if (newItems.length > 0) {
+      setCustomModels(prev => [...prev, ...newItems]);
+      onSelectModel(newItems[0].id);
+    }
+
+    setImportSuccessMsg(`Successfully imported ${newItems.length} models!`);
+    setTimeout(() => {
+      setActiveTab("engines");
+      setImportSuccessMsg(null);
+    }, 1200);
+  };
+
   const allModels = [...BASE_SUPPORTED_MODELS, ...customModels];
 
   return (
     <>
-      {/* Backdrop Overlay */}
       <div 
         className="fixed inset-0 bg-black/60 backdrop-blur-xs z-[100] transition-opacity duration-150 animate-fade-in" 
         onClick={onClose} 
       />
       
-      {/* Left sliding container - Perfectly matches the left sidebar height, bg, border and z-index */}
       <div 
-        className="fixed left-0 top-0 bottom-0 w-[280px] max-w-[85vw] bg-zinc-900 border-r border-zinc-850 z-[101] shadow-2xl flex flex-col h-full animate-slide-in-left select-none overflow-hidden"
+        className="fixed left-0 top-0 bottom-0 w-[340px] max-w-[90vw] bg-zinc-900 border-r border-zinc-850 z-[101] shadow-2xl flex flex-col h-full animate-slide-in-left select-none overflow-hidden font-mono"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Drawer Header */}
         <div className="h-13 px-4 flex items-center justify-between border-b border-zinc-850 bg-zinc-930/60 shrink-0">
-          <div className="flex items-center gap-2.5 min-w-0 flex-1">
-            <Cpu className="w-3.5 h-3.5" style={{ color: accentColor }} />
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-200">
-              Select Engine Model
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <Cpu className="w-4 h-4 shrink-0" style={{ color: accentColor }} />
+            <span className="text-[11px] font-mono font-bold uppercase tracking-wider text-zinc-200 truncate">
+              Engine Model Hub
             </span>
           </div>
           <button 
+            type="button"
             onClick={onClose}
-            className="p-1 text-zinc-500 hover:text-zinc-350 hover:bg-zinc-800/40 rounded-lg cursor-pointer transition-all active:scale-95"
+            className="p-1 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/60 rounded-lg cursor-pointer transition-all active:scale-95 shrink-0"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Scrollable Model List & Custom Add Form */}
-        <div className="flex-1 overflow-y-auto no-scrollbar p-3.5 space-y-4 font-mono text-xs">
-          
-          {/* Models List */}
-          <div className="space-y-2">
-            <div className="text-[9px] font-mono font-extrabold uppercase tracking-widest text-zinc-500">Available Engines</div>
-            <div className="space-y-1.5 max-h-[320px] overflow-y-auto pr-1 no-scrollbar border border-zinc-850/50 rounded-xl p-2 bg-zinc-950/20">
-              {allModels.map((m) => {
-                const isSelected = selectedModel === m.id;
-                return (
-                  <div
-                    key={m.id}
-                    onClick={() => onSelectModel(m.id)}
-                    className={`group flex flex-col p-2.5 rounded-lg cursor-pointer transition-all border ${
-                      isSelected 
-                        ? "bg-zinc-850/50 border-zinc-750/50 text-zinc-100" 
-                        : "bg-transparent border-transparent hover:bg-zinc-900/40 text-zinc-400 hover:text-zinc-200"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex flex-col min-w-0 flex-1">
-                        <span className="text-[11px] font-sans font-semibold truncate text-zinc-200">{m.name}</span>
-                        <span className="text-[8px] text-zinc-500 truncate mt-0.5 font-mono">{m.id}</span>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span 
-                          className={`text-[8px] font-mono font-bold px-1.5 py-0.2 rounded shrink-0 ${
-                            isSelected 
-                              ? "bg-indigo-950/60 text-indigo-300 border border-indigo-900/40" 
-                              : "bg-zinc-900 text-zinc-500"
-                          }`}
-                          style={isSelected ? { backgroundColor: `${accentColor}15`, color: accentColor, borderColor: `${accentColor}30` } : {}}
-                        >
-                          {m.tag}
-                        </span>
-                        
-                        {m.isCustom && (
-                          <button
-                            onClick={(e) => handleDeleteCustomModel(m.id, e)}
-                            className="p-1 text-zinc-650 hover:text-rose-450 rounded hover:bg-zinc-800 transition-colors"
-                            title="Delete Custom Model"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                    <p className="text-[9.5px] text-zinc-500 font-sans mt-1.5 leading-relaxed line-clamp-2">
-                      {m.desc}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+        <div className="flex items-center p-2 border-b border-zinc-850 bg-zinc-950/40 gap-1 shrink-0 text-[10px]">
+          <button
+            type="button"
+            onClick={() => setActiveTab("engines")}
+            className={`flex-1 py-1.5 px-2 rounded-lg font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+              activeTab === "engines"
+                ? "bg-zinc-800 text-zinc-100 border border-zinc-700 shadow-xs"
+                : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-850/50"
+            }`}
+          >
+            <Cpu className="w-3 h-3" style={activeTab === "engines" ? { color: accentColor } : {}} />
+            <span>Active ({allModels.length})</span>
+          </button>
 
-          {/* Add Custom Model Section */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 border-t border-zinc-850 pt-4 mb-1">
-              <PlusCircle className="w-3.5 h-3.5 text-zinc-500" style={{ color: accentColor }} />
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-zinc-200">
-                Register Custom Model
-              </span>
-            </div>
+          <button
+            type="button"
+            onClick={() => setActiveTab("auto_fetch")}
+            className={`flex-1 py-1.5 px-2 rounded-lg font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+              activeTab === "auto_fetch"
+                ? "bg-zinc-800 text-zinc-100 border border-zinc-700 shadow-xs"
+                : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-850/50"
+            }`}
+          >
+            <Zap className="w-3 h-3 text-amber-400" />
+            <span>Auto-Fetch</span>
+          </button>
 
-            {/* Form */}
-            <div className="space-y-3 font-mono text-[10px]">
-              <div className="space-y-1">
-                <label className="text-zinc-500 font-bold uppercase tracking-wider text-[8.5px]">Model ID / OpenRouter Path</label>
-                <input 
-                  type="text"
-                  placeholder="e.g. deepseek/deepseek-chat"
-                  value={customModelId}
-                  onChange={(e) => {
-                    setCustomModelId(e.target.value);
-                    setCustomError(null);
-                  }}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-1.5 px-2.5 text-zinc-300 focus:outline-none focus:border-zinc-700 font-mono text-[10px]"
-                />
-              </div>
+          <button
+            type="button"
+            onClick={() => setActiveTab("manual")}
+            className={`py-1.5 px-2.5 rounded-lg font-bold transition-all cursor-pointer flex items-center justify-center gap-1 ${
+              activeTab === "manual"
+                ? "bg-zinc-800 text-zinc-100 border border-zinc-700 shadow-xs"
+                : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-850/50"
+            }`}
+            title="Manual Add"
+          >
+            <Plus className="w-3 h-3" />
+            <span>Custom</span>
+          </button>
+        </div>
 
-              <div className="space-y-1">
-                <label className="text-zinc-500 font-bold uppercase tracking-wider text-[8.5px]">Display Label</label>
-                <input 
-                  type="text"
-                  placeholder="e.g. DeepSeek Chat"
-                  value={customModelName}
-                  onChange={(e) => {
-                    setCustomModelName(e.target.value);
-                    setCustomError(null);
-                  }}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-1.5 px-2.5 text-zinc-300 focus:outline-none focus:border-zinc-700 font-mono text-[10px]"
-                />
-              </div>
+        <div className="flex-1 overflow-y-auto no-scrollbar p-3.5 space-y-4 text-xs">
+          {activeTab === "engines" && (
+            <ModelTabEngines
+              allModels={allModels}
+              selectedModel={selectedModel}
+              accentColor={accentColor}
+              onSelectModel={onSelectModel}
+              onDeleteCustomModel={handleDeleteCustomModel}
+            />
+          )}
 
-              <div className="space-y-1">
-                <label className="text-zinc-500 font-bold uppercase tracking-wider text-[8.5px]">Short Description</label>
-                <input 
-                  type="text"
-                  placeholder="e.g. High efficiency chat and logic model"
-                  value={customModelDesc}
-                  onChange={(e) => setCustomModelDesc(e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg py-1.5 px-2.5 text-zinc-300 focus:outline-none focus:border-zinc-700 font-mono text-[10px]"
-                />
-              </div>
+          {activeTab === "auto_fetch" && (
+            <ModelTabAutoFetch
+              selectedProviderId={selectedProviderId}
+              setSelectedProviderId={setSelectedProviderId}
+              providerKeyInput={providerKeyInput}
+              setProviderKeyInput={setProviderKeyInput}
+              providerEndpointInput={providerEndpointInput}
+              setProviderEndpointInput={setProviderEndpointInput}
+              isFetchingModels={isFetchingModels}
+              fetchError={fetchError}
+              importSuccessMsg={importSuccessMsg}
+              fetchedModels={fetchedModels}
+              selectedFetchedIds={selectedFetchedIds}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              filterType={filterType}
+              setFilterType={setFilterType}
+              filteredFetchedModels={filteredFetchedModels}
+              onRunAutoFetch={handleRunAutoFetch}
+              onToggleSelectFetchedModel={toggleSelectFetchedModel}
+              onSelectAllFiltered={handleSelectAllFiltered}
+              onDeselectAll={handleDeselectAll}
+              onImportSelected={handleImportSelected}
+              accentColor={accentColor}
+            />
+          )}
 
-              {customError && (
-                <div className="text-rose-400 font-bold text-[9px] leading-tight">
-                  ✕ {customError}
-                </div>
-              )}
-
-              <button
-                onClick={handleAddCustomModel}
-                className="w-full py-2 bg-zinc-850 hover:bg-zinc-800 text-zinc-100 border border-zinc-750 hover:border-zinc-700 rounded-lg flex items-center justify-center gap-2 font-bold uppercase tracking-wide transition-all cursor-pointer text-[10px]"
-              >
-                <Plus className="w-3.5 h-3.5" style={{ color: accentColor }} />
-                Register Custom Model
-              </button>
-            </div>
-          </div>
-
+          {activeTab === "manual" && (
+            <ModelTabManual
+              customModelId={customModelId}
+              setCustomModelId={setCustomModelId}
+              customModelName={customModelName}
+              setCustomModelName={setCustomModelName}
+              customModelDesc={customModelDesc}
+              setCustomModelDesc={setCustomModelDesc}
+              customError={customError}
+              onAddCustomModel={handleAddCustomModel}
+              accentColor={accentColor}
+            />
+          )}
         </div>
       </div>
     </>

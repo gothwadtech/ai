@@ -9,11 +9,11 @@ import {
   ShieldCheck,
   Github,
   Globe,
-  Database
+  Key
 } from "lucide-react";
 import { motion } from "motion/react";
 
-export type SidebarSection = "explorer" | "source_control" | "unpacker" | "settings" | "github" | "deployment" | "cloud";
+export type SidebarSection = "explorer" | "source_control" | "unpacker" | "settings" | "github" | "deployment" | "secrets";
 
 interface ActivityBarProps {
   activeSection: SidebarSection;
@@ -73,9 +73,9 @@ export default function ActivityBar({
       badge: undefined
     },
     {
-      id: "cloud" as SidebarSection,
-      icon: Database,
-      label: "Cloud Services & DB",
+      id: "secrets" as SidebarSection,
+      icon: Key,
+      label: "Environment Secrets",
       badge: undefined
     }
   ];

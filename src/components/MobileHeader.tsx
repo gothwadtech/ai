@@ -1,5 +1,5 @@
 import React from "react";
-import { Menu } from "lucide-react";
+import { Menu, Sparkles } from "lucide-react";
 
 interface MobileHeaderProps {
   isDarkActive: boolean;
@@ -11,38 +11,35 @@ interface MobileHeaderProps {
   handleThemeModeChange: (mode: "light" | "dark" | "system") => void;
   selectRepo: (repo: any) => void;
   logout: () => void;
+  onSwitchToProjectsAI?: () => void;
 }
 
 export default function MobileHeader({
   accentColor,
   selectedRepo,
   setIsLeftDrawerOpen,
+  onSwitchToProjectsAI
 }: MobileHeaderProps) {
   return (
-    <div 
-      className="h-13 border-b border-zinc-850 bg-zinc-900/85 backdrop-blur-md px-4 flex items-center justify-between shrink-0 z-40 select-none"
-    >
-      <div className="flex items-center gap-3">
+    <div className="pt-1 pb-0.5 px-2 sm:px-3 shrink-0 z-40 select-none w-full">
+      <div className="max-w-3xl mx-auto w-full">
+        <div className="relative border border-zinc-800/80 rounded-2xl bg-zinc-900/90 backdrop-blur-md px-2 h-[54px] flex items-center justify-between gap-2 shadow-xl">
+        <div className="flex items-center gap-2 min-w-0">
         {/* Hamburger Button to Open Drawer */}
         <button 
           onClick={() => setIsLeftDrawerOpen(true)}
-          className="p-1.5 bg-zinc-950 hover:bg-zinc-850 text-zinc-400 hover:text-white border border-zinc-800 rounded-lg cursor-pointer shrink-0 transition-all active:scale-95 flex items-center justify-center"
+          className="p-2 bg-zinc-950 hover:bg-zinc-850 text-zinc-400 hover:text-white border border-zinc-800 rounded-xl cursor-pointer shrink-0 transition-all active:scale-95 flex items-center justify-center"
           title="Open Menu"
         >
-          <Menu className="w-5 h-5" />
+          <Menu className="w-4 h-4" />
         </button>
-
-        <div className="flex flex-col">
-          <span className="text-[11.5px] font-mono font-bold text-zinc-100 uppercase tracking-tight">Software Builder</span>
-          <span className="text-[8.5px] font-mono text-zinc-500 uppercase tracking-wider font-semibold mt-0.5">Workspace IDE</span>
-        </div>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 shrink-0">
         {/* Repository Pill */}
         {selectedRepo ? (
           <div 
-            className="flex items-center gap-1.5 bg-zinc-950 text-zinc-300 border px-2.5 py-1 rounded-lg text-[9px] font-mono font-bold truncate max-w-[140px]"
+            className="flex items-center gap-1.5 bg-zinc-950 text-zinc-300 border px-2 py-1 rounded-lg text-[9px] font-mono font-bold truncate max-w-[120px]"
             style={{ borderColor: `${accentColor}25` }}
           >
             <span className="w-1 h-1 rounded-full bg-emerald-500 shrink-0 animate-pulse" />
@@ -54,6 +51,8 @@ export default function MobileHeader({
           </div>
         )}
       </div>
+      </div>
     </div>
-  );
+  </div>
+);
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { GitHubUser, GitHubRepo } from "../types/github";
 import { github } from "../services/github";
 import { supabaseService } from "../services/supabase";
@@ -9,15 +9,19 @@ export function useGitHubAuth() {
   const [repos, setRepos] = useState<GitHubRepo[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const lastSavedTokenRef = useRef<string | null>(null);
 
   const initAuth = useCallback(async (newToken?: string) => {
     if (newToken) {
       github.setToken(newToken);
       setTokenState(newToken);
-      try {
-        await supabaseService.saveUserGitHubToken(newToken);
-      } catch (e) {
-        console.warn("Failed to auto-save GitHub token to Supabase:", e);
+      if (lastSavedTokenRef.current !== newToken) {
+        lastSavedTokenRef.current = newToken;
+        try {
+          await supabaseService.saveUserGitHubToken(newToken);
+        } catch (e) {
+          console.warn("Failed to auto-save GitHub token to Supabase:", e);
+        }
       }
     }
 
@@ -29,10 +33,13 @@ export function useGitHubAuth() {
           github.setToken(savedToken);
           setTokenState(savedToken);
           currentToken = savedToken;
+          lastSavedTokenRef.current = savedToken;
         }
       } catch (e) {
         console.warn("Failed to check Supabase for saved GitHub token:", e);
       }
+    } else {
+      lastSavedTokenRef.current = currentToken;
     }
 
     if (!currentToken) return;
@@ -164,6 +171,7 @@ export function useGitHubAuth() {
 
 
   const disconnectGitHub = async () => {
+    lastSavedTokenRef.current = null;
     github.setToken(null);
     setTokenState(null);
     setUser(null);
@@ -176,6 +184,7 @@ export function useGitHubAuth() {
   };
 
   const handleLogout = async () => {
+    lastSavedTokenRef.current = null;
     github.setToken(null);
     setTokenState(null);
     setUser(null);

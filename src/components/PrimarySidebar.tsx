@@ -22,12 +22,7 @@ import {
   Cpu,
   X,
   Image,
-  Video,
-  Music,
-  Mic,
-  Globe,
-  AppWindow,
-  Presentation
+  Video
 } from "lucide-react";
 
 import IntegrationsPanel from "./IntegrationsPanel";
@@ -52,7 +47,7 @@ const MODELS = [
 
 interface PrimarySidebarProps {
   token: string | null;
-  activeSection: "explorer" | "source_control" | "unpacker" | "settings" | "github" | "deployment" | "cloud";
+  activeSection: "explorer" | "source_control" | "unpacker" | "settings" | "github" | "deployment" | "secrets";
   user: any;
   repos: any[];
   selectedRepo: any;
@@ -91,6 +86,7 @@ interface PrimarySidebarProps {
   activeStudio?: "chat" | "software";
   handleSetActiveStudio?: (studio: "chat" | "software") => void;
   setMobileActiveTab?: (tab: "explorer" | "editor" | "git" | "preview" | "ai" | "settings") => void;
+  onToggleAiPanel?: () => void;
   chatSessions?: any[];
   activeChatSessionId?: string;
   onSetActiveChatSessionId?: (id: string) => void;
@@ -129,48 +125,6 @@ const STUDIO_COLORS: Record<string, {
     bgHover: "rgba(6, 182, 212, 0.03)",
     gradient: "linear-gradient(135deg, #22d3ee 0%, #06b6d4 50%, #0891b2 100%)",
     textGlow: "0px 0px 10px rgba(6, 182, 212, 0.4)"
-  },
-  audio_gen: {
-    accent: "#10b981", // Emerald
-    bgActive: "rgba(16, 185, 129, 0.08)",
-    bgHover: "rgba(16, 185, 129, 0.03)",
-    gradient: "linear-gradient(135deg, #34d399 0%, #10b981 50%, #047857 100%)",
-    textGlow: "0px 0px 10px rgba(16, 185, 129, 0.4)"
-  },
-  presentation_ai: {
-    accent: "#14b8a6", // Teal
-    bgActive: "rgba(20, 184, 166, 0.08)",
-    bgHover: "rgba(20, 184, 166, 0.03)",
-    gradient: "linear-gradient(135deg, #2dd4bf 0%, #14b8a6 50%, #0f766e 100%)",
-    textGlow: "0px 0px 10px rgba(20, 184, 166, 0.4)"
-  },
-  website_builder_ai: {
-    accent: "#eab308", // Gold/Yellow
-    bgActive: "rgba(234, 179, 8, 0.08)",
-    bgHover: "rgba(234, 179, 8, 0.03)",
-    gradient: "linear-gradient(135deg, #fde047 0%, #eab308 50%, #ca8a04 100%)",
-    textGlow: "0px 0px 10px rgba(234, 179, 8, 0.4)"
-  },
-  web_app_builder_ai: {
-    accent: "#d946ef", // Fuchsia/Pink
-    bgActive: "rgba(217, 70, 239, 0.08)",
-    bgHover: "rgba(217, 70, 239, 0.03)",
-    gradient: "linear-gradient(135deg, #f0abfc 0%, #d946ef 50%, #c084fc 100%)",
-    textGlow: "0px 0px 10px rgba(217, 70, 239, 0.4)"
-  },
-  voice_assistant: {
-    accent: "#f97316", // Orange
-    bgActive: "rgba(249, 115, 22, 0.08)",
-    bgHover: "rgba(249, 115, 22, 0.03)",
-    gradient: "linear-gradient(135deg, #ff9d43 0%, #f97316 50%, #c2410c 100%)",
-    textGlow: "0px 0px 10px rgba(249, 115, 22, 0.4)"
-  },
-  chat: {
-    accent: "#3b82f6", // Blue
-    bgActive: "rgba(59, 130, 246, 0.08)",
-    bgHover: "rgba(59, 130, 246, 0.03)",
-    gradient: "linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #1d4ed8 100%)",
-    textGlow: "0px 0px 10px rgba(59, 130, 246, 0.4)"
   },
   software: {
     accent: "#6366f1", // Indigo
@@ -222,6 +176,7 @@ export default function PrimarySidebar({
   activeStudio = "chat",
   handleSetActiveStudio,
   setMobileActiveTab,
+  onToggleAiPanel,
   chatSessions = [],
   activeChatSessionId = "",
   onSetActiveChatSessionId,
@@ -311,23 +266,14 @@ export default function PrimarySidebar({
   }, [activeSection]);
 
   return (
-    <div className="w-full min-w-0 md:w-[280px] md:min-w-[280px] h-full bg-zinc-950 border-r border-zinc-900 flex flex-col justify-start overflow-hidden select-none z-40">
+    <div className="w-[280px] min-w-[280px] max-w-[85vw] shrink-0 h-full bg-zinc-950 border-r border-zinc-900 flex flex-col justify-start overflow-hidden select-none z-40">
       
-      {/* 1. SIDEBAR BRANDED HEADER WITH GOTHWAD AI STUDIO */}
+      {/* 1. SIDEBAR BRANDED HEADER WITH GOTHWAD TECH AI */}
       <div className="h-13 px-4 flex items-center justify-between border-b border-zinc-900 select-none bg-zinc-950 shrink-0">
         <div className="flex items-center gap-2.5 min-w-0 flex-1">
           {sidebarPage === "home" ? (
-            <div 
-              className="w-7 h-7 rounded-lg bg-[#0494f4] flex items-center justify-center text-white shadow-md shrink-0 overflow-hidden" 
-              style={{
-                paddingLeft: "4px",
-                paddingRight: "4px",
-                paddingTop: "3px",
-                marginLeft: "0px",
-                marginTop: "-4px"
-              }}
-            >
-              <img src="/icon-512-maskable.png" alt="Gothwad Icon" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            <div className="w-7 h-7 rounded-lg bg-[#0494f4] p-1 flex items-center justify-center text-white shadow-md shrink-0 overflow-hidden">
+              <img src="/icon-512-maskable.png" alt="Gothwad Icon" className="w-full h-full object-contain" referrerPolicy="no-referrer" />
             </div>
           ) : (
             <button
@@ -345,7 +291,7 @@ export default function PrimarySidebar({
           )}
           <div className="flex flex-col min-w-0">
             <span className="text-[11.5px] font-mono font-bold text-zinc-100 tracking-tight leading-none uppercase truncate">
-              {sidebarPage === "home" && "Gothwad Ai Studio"}
+              {sidebarPage === "home" && "Gothwad Tech AI"}
               {sidebarPage === "software" && "Software Builder"}
               {sidebarPage === "chat_playground" && "AI Chat Studio"}
             </span>
@@ -367,45 +313,6 @@ export default function PrimarySidebar({
         )}
       </div>
 
-      {/* 2. LOGIN & CONNECT STUDIO BANNER */}
-      <div 
-        onClick={() => {
-          if (handleSetActiveStudio) handleSetActiveStudio("software");
-          if (onSelectSection) onSelectSection("github");
-        }}
-        className="mx-3.5 my-2 p-3 bg-zinc-900/60 hover:bg-zinc-900 border border-zinc-850 rounded-xl transition-all cursor-pointer flex items-center justify-between gap-3 shrink-0 select-none group shadow-inner"
-        title="Manage GitHub & Supabase Connections"
-      >
-        <div className="flex items-center gap-2.5 min-w-0">
-          {token && user ? (
-            <img 
-              src={user.avatar_url} 
-              alt="avatar" 
-              className="w-8 h-8 rounded-lg border border-emerald-500/20 shadow-md shrink-0 object-cover"
-              referrerPolicy="no-referrer"
-            />
-          ) : (
-            <div className="w-8 h-8 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-center text-zinc-400 group-hover:text-white group-hover:border-zinc-750 transition-colors shrink-0">
-              <Github className="w-4 h-4" />
-            </div>
-          )}
-          <div className="flex flex-col min-w-0">
-            <span className="text-[11px] font-mono font-bold text-zinc-200 tracking-tight leading-none uppercase group-hover:text-white transition-colors truncate">
-              {token && user ? user.name || user.login : "Login & Connect studio"}
-            </span>
-            <span className="text-[8.5px] font-mono text-zinc-500 uppercase tracking-wider mt-1 truncate leading-none">
-              {token && user ? "Connected to Github" : "Manage Studio With Github"}
-            </span>
-          </div>
-        </div>
-        
-        {token ? (
-          <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0 mr-1" title="Active Connection" />
-        ) : (
-          <ChevronRight className="w-3.5 h-3.5 text-zinc-600 group-hover:text-zinc-400 transition-colors shrink-0" />
-        )}
-      </div>
-
       {/* Page 1: Home/Main Menu of workspaces */}
       {sidebarPage === "home" && (
         <div className="flex-1 flex flex-col justify-between overflow-hidden bg-zinc-950/15">
@@ -420,51 +327,6 @@ export default function PrimarySidebar({
                 action: () => {
                   setActiveMainOption("gothwad_ai");
                   safeStorage.setItem("gothwad_active_main_option", "gothwad_ai");
-                  handleSetActiveStudio?.("chat");
-                  if (chatSessions && activeChatSessionId && onUpdateChatSessions) {
-                    const updated = chatSessions.map(s => {
-                      if (s.id === activeChatSessionId) {
-                        return { ...s, selectedModel: "openrouter/auto" };
-                      }
-                      return s;
-                    });
-                    onUpdateChatSessions(updated);
-                  }
-                  if (isMobile) onToggleSidebar?.();
-                } 
-              },
-              { 
-                id: "chat", 
-                label: "AI Chat Playground", 
-                icon: MessageSquare, 
-                desc: "Multi-model AI sandbox", 
-                action: () => {
-                  setActiveMainOption("chat");
-                  safeStorage.setItem("gothwad_active_main_option", "chat");
-                  handleSetActiveStudio?.("chat");
-                  if (chatSessions && activeChatSessionId && onUpdateChatSessions) {
-                    const activeSess = chatSessions.find(s => s.id === activeChatSessionId);
-                    if (activeSess?.selectedModel === "openrouter/auto") {
-                      const updated = chatSessions.map(s => {
-                        if (s.id === activeChatSessionId) {
-                          return { ...s, selectedModel: "google/gemini-2.5-flash" };
-                        }
-                        return s;
-                      });
-                      onUpdateChatSessions(updated);
-                    }
-                  }
-                  if (isMobile) onToggleSidebar?.();
-                } 
-              },
-              { 
-                id: "voice_assistant", 
-                label: "Voice Assistant AI", 
-                icon: Mic, 
-                desc: "Real-time Voice & Speech", 
-                action: () => {
-                  setActiveMainOption("voice_assistant");
-                  safeStorage.setItem("gothwad_active_main_option", "voice_assistant");
                   handleSetActiveStudio?.("chat");
                   if (isMobile) onToggleSidebar?.();
                 } 
@@ -494,58 +356,10 @@ export default function PrimarySidebar({
                 } 
               },
               { 
-                id: "audio_gen", 
-                label: "Audio Generator AI", 
-                icon: Music, 
-                desc: "AI Music & Sound synthesis", 
-                action: () => {
-                  setActiveMainOption("audio_gen");
-                  safeStorage.setItem("gothwad_active_main_option", "audio_gen");
-                  handleSetActiveStudio?.("chat");
-                  if (isMobile) onToggleSidebar?.();
-                } 
-              },
-              { 
-                id: "presentation_ai", 
-                label: "Presentation AI", 
-                icon: Presentation, 
-                desc: "Generate professional decks & slides", 
-                action: () => {
-                  setActiveMainOption("presentation_ai");
-                  safeStorage.setItem("gothwad_active_main_option", "presentation_ai");
-                  handleSetActiveStudio?.("chat");
-                  if (isMobile) onToggleSidebar?.();
-                } 
-              },
-              { 
-                id: "website_builder_ai", 
-                label: "Website Builder AI", 
-                icon: Globe, 
-                desc: "Design & build custom websites", 
-                action: () => {
-                  setActiveMainOption("website_builder_ai");
-                  safeStorage.setItem("gothwad_active_main_option", "website_builder_ai");
-                  handleSetActiveStudio?.("chat");
-                  if (isMobile) onToggleSidebar?.();
-                } 
-              },
-              { 
-                id: "web_app_builder_ai", 
-                label: "Web App Builder AI", 
-                icon: AppWindow, 
-                desc: "Create interactive web applications", 
-                action: () => {
-                  setActiveMainOption("web_app_builder_ai");
-                  safeStorage.setItem("gothwad_active_main_option", "web_app_builder_ai");
-                  handleSetActiveStudio?.("chat");
-                  if (isMobile) onToggleSidebar?.();
-                } 
-              },
-              { 
                 id: "software", 
                 label: "Software Builder AI", 
                 icon: FileCode2, 
-                desc: "Workspace IDE & Git control", 
+                desc: "Universal Software, Web & Mobile Builder", 
                 action: () => {
                   setActiveMainOption("software");
                   safeStorage.setItem("gothwad_active_main_option", "software");
@@ -634,9 +448,12 @@ export default function PrimarySidebar({
           <div className="border-t border-zinc-900 bg-zinc-950 divide-y divide-zinc-900/60 shrink-0">
             {[
               { id: "settings" as const, label: "Studio Settings", icon: Settings, desc: "Theme options & configurations", action: () => {
-                handleSetActiveStudio?.("software");
-                if (onSelectSection) onSelectSection("settings");
-                setSidebarPage("software");
+                if (setActiveMainOption) {
+                  setActiveMainOption("settings");
+                }
+                if (onSelectSection) {
+                  onSelectSection("settings");
+                }
               } }
             ].map((std) => {
               const Icon = std.icon;
@@ -676,7 +493,43 @@ export default function PrimarySidebar({
         <div className="flex-1 flex flex-col overflow-hidden bg-zinc-950/15">
 
           <div className="flex-1 overflow-y-auto no-scrollbar divide-y divide-zinc-850/45">
-            {/* SECTION 1: WORKSPACE EXPLORER */}
+            {/* SECTION 1: PROJECTS & AI AGENT */}
+            <div className="flex flex-col bg-zinc-900/40">
+              <button
+                onClick={() => {
+                  if (onToggleAiPanel) {
+                    onToggleAiPanel();
+                  } else if (setMobileActiveTab) {
+                    setMobileActiveTab("ai");
+                  }
+                }}
+                className="w-full flex items-center justify-between px-3.5 py-3.5 hover:bg-zinc-850/45 transition-all text-left border-b border-zinc-850/45 select-none cursor-pointer group"
+              >
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                  <div 
+                    className="w-7 h-7 rounded-lg flex items-center justify-center text-white shadow-md shrink-0 transition-all" 
+                    style={{ 
+                      background: `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}aa 100%)` 
+                    }}
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-[11px] font-mono font-bold text-zinc-100 uppercase tracking-tight leading-none truncate group-hover:text-white transition-colors">
+                      Projects & AI Agent
+                    </span>
+                    <span className="text-[8.5px] font-mono text-zinc-500 uppercase tracking-wider truncate font-semibold mt-1">
+                      Software Builder AI Agent
+                    </span>
+                  </div>
+                </div>
+                <div className="text-zinc-550 shrink-0 ml-2 group-hover:text-zinc-300 transition-colors">
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </div>
+              </button>
+            </div>
+
+            {/* SECTION 2: WORKSPACE EXPLORER */}
             <div className="flex flex-col bg-zinc-900/40">
               <button
                 onClick={() => {
@@ -784,105 +637,33 @@ export default function PrimarySidebar({
               </button>
             </div>
 
-            {/* SECTION 4: CLOUD & DB SERVICES */}
+            {/* SECTION 4: ENVIRONMENT SECRETS */}
             <div className="flex flex-col bg-zinc-900/40">
               <button
                 onClick={() => {
-                  if (onSelectSection) onSelectSection("cloud");
+                  if (onSelectSection) onSelectSection("secrets");
                 }}
                 className={`w-full flex items-center justify-between px-3.5 py-3.5 hover:bg-zinc-850/45 transition-all text-left border-b border-zinc-850/45 select-none cursor-pointer group ${
-                  activeSection === "cloud" ? "bg-zinc-850/20" : ""
+                  activeSection === "secrets" ? "bg-zinc-850/20" : ""
                 }`}
               >
                 <div className="flex items-center gap-2.5 min-w-0 flex-1">
                   <div 
                     className="w-7 h-7 rounded-lg flex items-center justify-center text-white shadow-md shrink-0 transition-all" 
                     style={{ 
-                      background: activeSection === "cloud" 
+                      background: activeSection === "secrets" 
                         ? `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}aa 100%)` 
                         : "linear-gradient(135deg, #27272a 0%, #18181b 100%)" 
                     }}
                   >
-                    <Database className="w-3.5 h-3.5" />
+                    <Key className="w-3.5 h-3.5" />
                   </div>
                   <div className="flex flex-col min-w-0">
                     <span className="text-[11px] font-mono font-bold text-zinc-100 uppercase tracking-tight leading-none truncate group-hover:text-white transition-colors">
-                      Cloud Services & DB
+                      Environment Secrets
                     </span>
                     <span className="text-[8.5px] font-mono text-zinc-500 uppercase tracking-wider truncate font-semibold mt-1">
-                      Firestore, Supabase & DBs
-                    </span>
-                  </div>
-                </div>
-                <div className="text-zinc-550 shrink-0 ml-2 group-hover:text-zinc-300 transition-colors">
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </div>
-              </button>
-            </div>
-
-            {/* SECTION 5: CONNECT GITHUB */}
-            <div className="flex flex-col bg-zinc-900/40">
-              <button
-                onClick={() => {
-                  if (onSelectSection) onSelectSection("github");
-                }}
-                className={`w-full flex items-center justify-between px-3.5 py-3.5 hover:bg-zinc-850/45 transition-all text-left border-b border-zinc-850/45 select-none cursor-pointer group ${
-                  activeSection === "github" ? "bg-zinc-850/20" : ""
-                }`}
-              >
-                <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                  <div 
-                    className="w-7 h-7 rounded-lg flex items-center justify-center text-white shadow-md shrink-0 transition-all" 
-                    style={{ 
-                      background: activeSection === "github" 
-                        ? `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}aa 100%)` 
-                        : "linear-gradient(135deg, #27272a 0%, #18181b 100%)" 
-                    }}
-                  >
-                    <Github className="w-3.5 h-3.5" />
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-[11px] font-mono font-bold text-zinc-100 uppercase tracking-tight leading-none truncate group-hover:text-white transition-colors">
-                      Connect GitHub
-                    </span>
-                    <span className="text-[8.5px] font-mono text-zinc-500 uppercase tracking-wider truncate font-semibold mt-1">
-                      OAuth & personal keys
-                    </span>
-                  </div>
-                </div>
-                <div className="text-zinc-550 shrink-0 ml-2 group-hover:text-zinc-300 transition-colors">
-                  <ChevronRight className="w-3.5 h-3.5" />
-                </div>
-              </button>
-            </div>
-
-            {/* SECTION 6: STUDIO SETTINGS */}
-            <div className="flex flex-col bg-zinc-900/40">
-              <button
-                onClick={() => {
-                  if (onSelectSection) onSelectSection("settings");
-                }}
-                className={`w-full flex items-center justify-between px-3.5 py-3.5 hover:bg-zinc-850/45 transition-all text-left border-b border-zinc-850/45 select-none cursor-pointer group ${
-                  activeSection === "settings" ? "bg-zinc-850/20" : ""
-                }`}
-              >
-                <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                  <div 
-                    className="w-7 h-7 rounded-lg flex items-center justify-center text-white shadow-md shrink-0 transition-all" 
-                    style={{ 
-                      background: activeSection === "settings" 
-                        ? `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}aa 100%)` 
-                        : "linear-gradient(135deg, #27272a 0%, #18181b 100%)" 
-                    }}
-                  >
-                    <Settings className="w-3.5 h-3.5" />
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="text-[11px] font-mono font-bold text-zinc-100 uppercase tracking-tight leading-none truncate group-hover:text-white transition-colors">
-                      Studio Settings
-                    </span>
-                    <span className="text-[8.5px] font-mono text-zinc-500 uppercase tracking-wider truncate font-semibold mt-1">
-                      Theme options & configurations
+                      Manage .env keys & secrets
                     </span>
                   </div>
                 </div>

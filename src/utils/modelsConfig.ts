@@ -1,3 +1,5 @@
+import { safeStorage } from "./safeStorage";
+
 export interface AIModel {
   value: string;
   label: string;
@@ -28,3 +30,25 @@ export const DEFAULT_MODELS: AIModel[] = [
   { value: "nvidia/nemotron-3.5-content-safety:free", label: "Nemotron-3.5 Safety", desc: "Content-safety filter and response guard model.", categories: ["chats", "software"] },
   { value: "liquid/lfm-2.5-1.2b-instruct:free", label: "Liquid LFM 2.5 1.2B", desc: "Next-gen dynamic liquid neural network model.", categories: ["chats", "software"] }
 ];
+
+export function getAllSupportedModels(): AIModel[] {
+  try {
+    const saved = safeStorage.getItem("gothwad_custom_models");
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        const customItems: AIModel[] = parsed.map((m: any) => ({
+          value: m.id,
+          label: `${m.name} (${m.tag || "Auto"})`,
+          desc: m.desc || "Custom AI model engine",
+          categories: ["chats", "software"]
+        }));
+
+        const existingValues = new Set(DEFAULT_MODELS.map(dm => dm.value));
+        const newCustoms = customItems.filter(ci => !existingValues.has(ci.value));
+        return [...DEFAULT_MODELS, ...newCustoms];
+      }
+    }
+  } catch (e) {}
+  return DEFAULT_MODELS;
+}

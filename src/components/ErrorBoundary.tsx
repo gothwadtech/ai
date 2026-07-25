@@ -29,7 +29,7 @@ export default class ErrorBoundary extends React.Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("Gothwad AI Studio captured a crash:", error, errorInfo);
+    console.error("Gothwad Tech AI captured a crash:", error, errorInfo);
     this.setState({ errorInfo });
   }
 
@@ -87,7 +87,7 @@ export default class ErrorBoundary extends React.Component<Props, State> {
                 Diagnostic Exception Info
               </span>
               <p className="text-[10px] text-zinc-400 font-sans font-medium uppercase tracking-wide leading-relaxed px-1">
-                GOTHWAD AI STUDIO RAN INTO AN UNEXPECTED SYSTEM ERROR AND PAUSED YOUR CURRENT SESSION.
+                GOTHWAD TECH AI RAN INTO AN UNEXPECTED SYSTEM ERROR AND PAUSED YOUR CURRENT SESSION.
               </p>
             </div>
 

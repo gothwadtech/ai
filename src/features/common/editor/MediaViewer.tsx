@@ -207,7 +207,7 @@ export default function MediaViewer({ activeFile, content }: MediaViewerProps) {
             </div>
 
             <p className="text-zinc-400 text-[10.5px] font-mono leading-relaxed max-w-xs">
-              Gothwad Ai Studio cannot preview this binary file inline. You can download this file to inspect it on your local workstation.
+              Gothwad Tech AI cannot preview this binary file inline. You can download this file to inspect it on your local workstation.
             </p>
 
             <button

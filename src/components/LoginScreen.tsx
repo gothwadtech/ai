@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Github, AlertCircle, Loader2, ShieldCheck, Mail, Lock, LogIn, UserPlus, Eye, EyeOff } from "lucide-react";
+import { Github, AlertCircle, Loader2, ShieldCheck, Mail, Lock, LogIn, UserPlus, Eye, EyeOff, User } from "lucide-react";
 import { motion } from "motion/react";
 import { supabaseService } from "../services/supabase";
 
@@ -11,6 +11,7 @@ interface LoginScreenProps {
   onPatSubmit: (e: React.FormEvent) => void;
   onTriggerSupabaseOAuth: () => void;
   onTriggerOAuth?: () => void;
+  onContinueAsGuest?: () => void;
   authConfig?: { clientId: string; appUrl: string } | null;
   accentColor: string;
 }
@@ -23,6 +24,7 @@ export default function LoginScreen({
   onPatSubmit,
   onTriggerSupabaseOAuth,
   onTriggerOAuth,
+  onContinueAsGuest,
   authConfig,
   accentColor
 }: LoginScreenProps) {
@@ -115,7 +117,7 @@ export default function LoginScreen({
           </div>
 
           <span className="font-black tracking-widest text-zinc-100 text-[13px] sm:text-[15px]">
-            GOTHWAD AI STUDIO
+            GOTHWAD TECH AI
           </span>
 
           {/* Right GitHub Logo Box */}
@@ -298,6 +300,20 @@ export default function LoginScreen({
         >
           <span>forget password ?</span>
         </button>
+
+        {/* Continue as Guest Button */}
+        {onContinueAsGuest && (
+          <button
+            type="button"
+            onClick={onContinueAsGuest}
+            className="w-full bg-zinc-900 border border-zinc-800/80 hover:border-zinc-700 hover:bg-zinc-850 text-zinc-400 hover:text-white py-3.5 rounded-xl transition-all font-bold text-xs uppercase tracking-widest cursor-pointer mt-3 flex items-center justify-center"
+            style={{ 
+              boxShadow: `0 2px 8px rgba(0, 0, 0, 0.2)`
+            }}
+          >
+            <span>Continue as a Guest</span>
+          </button>
+        )}
 
         {/* Extra bottom spacer to match spacing */}
         <div className="h-12 w-full shrink-0" />

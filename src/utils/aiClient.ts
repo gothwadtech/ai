@@ -25,7 +25,7 @@ export interface AiChatResponse {
   usedServerKey: boolean;
 }
 
-const DEFAULT_SYSTEM_INSTRUCTION = "You are Gothwad AI, an elite, ultra-responsive coding companion integrated directly into Gothwad Ai Studio. You are styled like Cursor, Windsurf, and Google AI Studio to give the ultimate developer workspace experience.\n\n";
+const DEFAULT_SYSTEM_INSTRUCTION = "You are Gothwad AI, an elite, ultra-responsive coding companion integrated directly into Gothwad Tech AI. You are styled like Cursor, Windsurf, and Google AI Studio to give the ultimate developer workspace experience.\n\n";
 
 export function getSystemInstruction(selectedAgent: string, systemInstructionOverride?: string): string {
   if (systemInstructionOverride) return systemInstructionOverride;
@@ -76,7 +76,7 @@ export function getSystemInstruction(selectedAgent: string, systemInstructionOve
     "- Since you are part of an interactive editor, you can suggest code that can be directly applied.\n" +
     "- When proposing code changes for the active file, output the updated file content in a clear Markdown code block. Be sure to write complete, compilable code rather than snippets with '...' placeholders, so the user can easily click 'Apply' to update their file instantly.\n" +
     "- Keep explanations concise, professional, and dense with actual value. Avoid marketing hype, and do not use emojis unless they are functional.\n" +
-    "- If asked about the Gothwad Ai Studio platform, you are Gothwad Ai Studio's native developer companion.";
+    "- If asked about the Gothwad Tech AI platform, you are Gothwad Tech AI's native developer companion.";
 
   return systemInstruction;
 }
@@ -153,11 +153,16 @@ export async function callAiChat(params: AiChatParams): Promise<AiChatResponse> 
       max_tokens: typeof params.maxTokens === "number" ? params.maxTokens : 1500
     };
 
-    const directRes = await fetch(endpoint, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(payload),
-    });
+    let directRes;
+    try {
+      directRes = await fetch(endpoint, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(payload),
+      });
+    } catch (netErr: any) {
+      throw new Error(`Groq Network Error: Unable to connect (${netErr.message || "Failed to fetch"}). Please check your internet connection.`);
+    }
 
     if (!directRes.ok) {
       const errorText = await directRes.text();
@@ -218,7 +223,7 @@ export async function callAiChat(params: AiChatParams): Promise<AiChatResponse> 
     "Content-Type": "application/json",
     "Authorization": `Bearer ${activeKey}`,
     "HTTP-Referer": "https://aistudio.gothwadtech.com",
-    "X-Title": "Gothwad Ai Studio"
+    "X-Title": "Gothwad Tech AI"
   };
 
   const payload = {
@@ -270,15 +275,15 @@ export async function callAiChat(params: AiChatParams): Promise<AiChatResponse> 
           body: JSON.stringify(fallbackPayload),
         });
         
-        if (retryRes.ok) {
-          const retryData = await retryRes.json();
-          const responseText = retryData.choices?.[0]?.message?.content || "No response choices returned on fallback.";
-          return {
-            text: responseText,
-            usedCustomKey: true,
-            usedServerKey: false
-          };
-        }
+          if (retryRes.ok) {
+            const retryData = await retryRes.json();
+            const responseText = retryData.choices?.[0]?.message?.content || "No response choices returned on fallback.";
+            return {
+              text: `*(Note: The requested model '${params.selectedModel}' was unavailable or required paid OpenRouter credits, so your query was automatically processed by Gemini 2.5 Flash)*\n\n${responseText}`,
+              usedCustomKey: true,
+              usedServerKey: false
+            };
+          }
       } catch (nestedErr) {
         console.error("[AI client] Fallback model request failed as well:", nestedErr);
       }

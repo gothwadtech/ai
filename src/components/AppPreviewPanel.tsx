@@ -115,7 +115,7 @@ export default function AppPreviewPanel({
       {
         id: "init",
         type: "info",
-        message: "⚡ Initiating Gothwad Ai Studio compilation layer...",
+        message: "⚡ Initiating Gothwad Tech AI compilation layer...",
         timestamp: new Date()
       }
     ]);
@@ -143,7 +143,7 @@ export default function AppPreviewPanel({
               <div className="w-16 h-16 bg-blue-600/15 text-blue-400 rounded-2xl flex items-center justify-center mb-4 border border-blue-500/30">
                 <span className="text-xl">🚀</span>
               </div>
-              <h1 className="text-2xl font-bold tracking-tight">Gothwad Ai Studio Sandbox</h1>
+              <h1 className="text-2xl font-bold tracking-tight">Gothwad Tech AI Sandbox</h1>
               <p className="text-zinc-400 text-xs mt-2 max-w-sm">
                 This is a real-time, zero-server-needed in-browser client compiler. Edit your codebase and hit compile to preview.
               </p>
@@ -245,7 +245,7 @@ export default function AppPreviewPanel({
     const bodyLoaderInjector = `
   <div id="sandbox-loader">
     <div class="spinner"></div>
-    <div id="loader-status" style="letter-spacing: 0.05em">Booting Gothwad Ai Studio compiler...</div>
+    <div id="loader-status" style="letter-spacing: 0.05em">Booting Gothwad Tech AI compiler...</div>
   </div>
 `;
 
@@ -667,7 +667,7 @@ export default function AppPreviewPanel({
                   ref={iframeRef}
                   srcDoc={iframeSrcDoc}
                   className="w-full flex-1 bg-[#09090b] border-none"
-                  title="Gothwad Ai Studio Live Preview"
+                  title="Gothwad Tech AI Live Preview"
                   sandbox="allow-scripts allow-same-origin allow-popups"
                 />
               ) : (
@@ -833,7 +833,7 @@ export default function AppPreviewPanel({
                         Set the Build Command to <code className="font-mono bg-zinc-950 px-1.5 py-0.5 rounded text-amber-400">npm run build</code> and the Output Directory to <code className="font-mono bg-zinc-950 px-1.5 py-0.5 rounded text-amber-400">dist</code>.
                       </li>
                       <li>
-                        Click <strong className="text-white bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded text-[10px]">Deploy</strong>. Any future git commits you make from Gothwad Studio will automatically trigger fresh builds and update your live preview link instantly!
+                        Click <strong className="text-white bg-amber-500/10 border border-amber-500/20 px-1.5 py-0.5 rounded text-[10px]">Deploy</strong>. Any future git commits you make from Gothwad Tech AI will automatically trigger fresh builds and update your live preview link instantly!
                       </li>
                     </ol>
                   </div>

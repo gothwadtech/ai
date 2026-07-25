@@ -11,31 +11,28 @@ import MobileLayout from "./components/MobileLayout";
 import DesktopLayout from "./components/DesktopLayout";
 import LoginScreen from "./components/LoginScreen";
 import SplashScreen from "./components/SplashScreen";
+import { SettingsView } from "./features/settings";
 
 const pathToOptionMap: Record<string, { option: string; studio: "chat" | "software" }> = {
   "/chat": { option: "gothwad_ai", studio: "chat" },
-  "/playground": { option: "chat", studio: "chat" },
-  "/voice": { option: "voice_assistant", studio: "chat" },
+  "/playground": { option: "gothwad_ai", studio: "chat" },
+  "/voice": { option: "gothwad_ai", studio: "chat" },
   "/image": { option: "image_gen", studio: "chat" },
   "/video": { option: "video_gen", studio: "chat" },
-  "/audio": { option: "audio_gen", studio: "chat" },
-  "/presentation": { option: "presentation_ai", studio: "chat" },
-  "/website": { option: "website_builder_ai", studio: "chat" },
-  "/webapp": { option: "web_app_builder_ai", studio: "chat" },
+  "/audio": { option: "gothwad_ai", studio: "chat" },
+  "/presentation": { option: "gothwad_ai", studio: "chat" },
+  "/website": { option: "gothwad_ai", studio: "chat" },
+  "/webapp": { option: "gothwad_ai", studio: "chat" },
   "/software": { option: "software", studio: "software" },
+  "/settings": { option: "settings", studio: "chat" },
 };
 
 const optionToPathMap: Record<string, string> = {
   gothwad_ai: "/chat",
-  chat: "/playground",
-  voice_assistant: "/voice",
   image_gen: "/image",
   video_gen: "/video",
-  audio_gen: "/audio",
-  presentation_ai: "/presentation",
-  website_builder_ai: "/website",
-  web_app_builder_ai: "/webapp",
   software: "/software",
+  settings: "/settings",
 };
 
 const getInitialRoute = () => {
@@ -47,7 +44,11 @@ const getInitialRoute = () => {
   if (match) {
     return match;
   }
-  const savedOption = safeStorage.getItem("gothwad_active_main_option") || "gothwad_ai";
+  let savedOption = safeStorage.getItem("gothwad_active_main_option") || "gothwad_ai";
+  const disabledOptions = ["chat", "voice_assistant", "audio_gen", "presentation_ai", "website_builder_ai", "web_app_builder_ai"];
+  if (disabledOptions.includes(savedOption)) {
+    savedOption = "gothwad_ai";
+  }
   const savedStudio = safeStorage.getItem("gothwad_studio_active_studio") as "chat" | "software";
   return {
     option: savedOption,
@@ -83,8 +84,21 @@ export default function App() {
   } = useGitHub();
 
   const [sbUser, setSbUser] = useState<any>(null);
+  const [isGuestMode, setIsGuestMode] = useState<boolean>(() => {
+    return safeStorage.getItem("gothwad_guest_session") === "true";
+  });
   const [isCheckingSession, setIsCheckingSession] = useState<boolean>(true);
   const [showSplash, setShowSplash] = useState<boolean>(true);
+
+  const handleContinueAsGuest = () => {
+    setIsGuestMode(true);
+    safeStorage.setItem("gothwad_guest_session", "true");
+    const savedOption = safeStorage.getItem("gothwad_active_main_option") || "gothwad_ai";
+    const defaultPath = optionToPathMap[savedOption] || "/chat";
+    if (window.location.pathname === "/" || window.location.pathname === "") {
+      window.history.replaceState(null, "", defaultPath);
+    }
+  };
 
   useEffect(() => {
     let active = true;
@@ -161,6 +175,10 @@ export default function App() {
   const handleDesktopModeChange = (enabled: boolean) => {
     setDesktopMode(enabled);
     safeStorage.setItem("gothwad_studio_desktop_mode", enabled ? "true" : "false");
+    if (!enabled) {
+      setAiPanelOpen(false);
+      setPreviewOpen(false);
+    }
   };
 
   const [mobileActiveTab, setMobileActiveTab] = useState<"explorer" | "editor" | "git" | "preview" | "ai" | "settings">("explorer");
@@ -210,7 +228,7 @@ export default function App() {
   useEffect(() => {
     if (isCheckingSession) return;
 
-    if (!sbUser) {
+    if (!sbUser && !isGuestMode) {
       // Force URL back to root / if they are not logged in, no bypass allowed
       if (window.location.pathname !== "/") {
         window.history.replaceState(null, "", "/");
@@ -231,7 +249,7 @@ export default function App() {
     }
 
     const handlePopState = () => {
-      if (!sbUser) {
+      if (!sbUser && !isGuestMode) {
         if (window.location.pathname !== "/") {
           window.history.replaceState(null, "", "/");
         }
@@ -271,7 +289,7 @@ export default function App() {
     return () => {
       window.removeEventListener("popstate", handlePopState);
     };
-  }, [isCheckingSession, sbUser]);
+  }, [isCheckingSession, sbUser, isGuestMode]);
 
   const [chatSessions, setChatSessions] = useState<any[]>(() => {
     const saved = safeStorage.getItem("gothwad_studio_chat_sessions");
@@ -299,7 +317,7 @@ export default function App() {
         {
           id: "welcome",
           role: "assistant",
-          content: "Welcome to **Gothwad Ai Studio Chat Workstation**!\n\nThis is a high-fidelity interactive chat sandbox styled like Google AI Studio. You can chat with advanced free or premium models, craft deep system instructions, configure inference parameters (temperature, token ceilings), and test complex prompt pipelines.\n\nType your query below to begin, or adjust the parameter console!",
+          content: "Welcome to **Gothwad Tech AI Chat Workstation**!\n\nThis is a high-fidelity interactive chat sandbox styled like Google AI Studio. You can chat with advanced free or premium models, craft deep system instructions, configure inference parameters (temperature, token ceilings), and test complex prompt pipelines.\n\nType your query below to begin, or adjust the parameter console!",
           timestamp: new Date()
         }
       ],
@@ -684,7 +702,7 @@ export default function App() {
       }>
         {showSplash ? (
           <SplashScreen status={isCheckingSession ? "CHECKING ACTIVE SESSION..." : "INITIALIZING WORKSPACE..."} accentColor={accentColor} isDarkActive={isDarkActive} />
-        ) : !sbUser ? (
+        ) : (!sbUser && !isGuestMode) ? (
           <LoginScreen
             isLoading={isLoading}
             error={error}
@@ -693,8 +711,33 @@ export default function App() {
             onPatSubmit={handlePatLoginSubmit}
             onTriggerSupabaseOAuth={handleSupabaseLogin}
             onTriggerOAuth={handleTriggerOAuth}
+            onContinueAsGuest={handleContinueAsGuest}
             authConfig={authConfig}
             accentColor={accentColor}
+          />
+        ) : activeMainOption === "settings" ? (
+          <SettingsView
+            themeMode={themeMode}
+            onThemeModeChange={handleThemeModeChange}
+            accentColor={accentColor}
+            onAccentColorChange={handleAccentColorChange}
+            fontFamily={fontFamily}
+            onFontFamilyChange={handleFontFamilyChange}
+            uiScale={uiScale}
+            onUiScaleChange={handleUiScaleChange}
+            desktopMode={desktopMode}
+            onDesktopModeChange={handleDesktopModeChange}
+            token={token}
+            onLogout={logout}
+            disconnectGitHub={disconnectGitHub}
+            onClearAppData={handleClearAppData}
+            user={user}
+            customApiKey={customApiKey}
+            onSetCustomApiKey={handleSetCustomApiKey}
+            groqApiKey={groqApiKey}
+            onSetGroqApiKey={handleSetGroqApiKey}
+            appModels={appModels}
+            onUpdateAppModels={handleUpdateAppModels}
           />
         ) : isMobile ? (
           <MobileLayout

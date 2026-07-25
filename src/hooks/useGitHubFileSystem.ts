@@ -377,7 +377,7 @@ export function useGitHubFileSystem() {
           selectedRepo.owner.login,
           selectedRepo.name,
           file.path,
-          `Sync ${file.path} unpacked from Gothwad Ai Studio ZIP`,
+          `Sync ${file.path} unpacked from Gothwad Tech AI ZIP`,
           file.content,
           sha,
           selectedBranch

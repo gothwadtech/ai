@@ -2,7 +2,7 @@ import { GitHubUser, GitHubRepo, GitHubBranch, GitHubFileItem, GitHubCommit } fr
 import { safeStorage } from "../utils/safeStorage";
 
 /**
- * Service to interact with Gothwad Ai Studio API proxy & GitHub
+ * Service to interact with Gothwad Tech AI API proxy & GitHub
  */
 class GitHubService {
   private token: string | null = null;
@@ -45,25 +45,32 @@ class GitHubService {
 
     const baseUrl = `https://api.github.com/${path}`;
 
-    const response = await fetch(baseUrl, {
-      ...options,
-      headers,
-    });
+    try {
+      const response = await fetch(baseUrl, {
+        ...options,
+        headers,
+      });
 
-    if (!response.ok) {
-      let errMsg = `GitHub request failed: ${response.statusText}`;
-      try {
-        const errorData = await response.json();
-        errMsg = errorData.message || errMsg;
-      } catch (e) {}
-      throw new Error(errMsg);
+      if (!response.ok) {
+        let errMsg = `GitHub request failed: ${response.statusText}`;
+        try {
+          const errorData = await response.json();
+          errMsg = errorData.message || errMsg;
+        } catch (e) {}
+        throw new Error(errMsg);
+      }
+
+      if (response.status === 204) {
+        return {} as T;
+      }
+
+      return response.json() as Promise<T>;
+    } catch (err: any) {
+      if (err.name === "TypeError" || err.message?.includes("Failed to fetch")) {
+        throw new Error("Unable to connect to GitHub API. Please check your network connection or token.");
+      }
+      throw err;
     }
-
-    if (response.status === 204) {
-      return {} as T;
-    }
-
-    return response.json() as Promise<T>;
   }
 
   // Fetch verified user details
@@ -94,15 +101,22 @@ class GitHubService {
 
   // Retrieve raw file payload
   async getRawFileContent(downloadUrl: string): Promise<string> {
-    const response = await fetch(downloadUrl, {
-      headers: this.getHeaders()
-    });
+    try {
+      const response = await fetch(downloadUrl, {
+        headers: this.getHeaders()
+      });
 
-    if (!response.ok) {
-      throw new Error("Failed to fetch file content");
+      if (!response.ok) {
+        throw new Error("Failed to fetch file content");
+      }
+
+      return response.text();
+    } catch (err: any) {
+      if (err.name === "TypeError" || err.message?.includes("Failed to fetch")) {
+        throw new Error("Unable to download raw file content from GitHub.");
+      }
+      throw err;
     }
-
-    return response.text();
   }
 
   // Helper to check if a file path is a text file
