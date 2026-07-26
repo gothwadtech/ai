@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { 
-  Key, Plus, Trash2, Eye, EyeOff, ShieldCheck, Check, 
-  Copy, Download, Upload, AlertCircle, RefreshCw, Lock, Sparkles
+  Key, Plus, Trash2, Eye, EyeOff, Check, 
+  Copy, Download, Upload, Lock, X, Menu
 } from "lucide-react";
 import { safeStorage } from "../../utils/safeStorage";
+import GlobalStudioHeader from "../GlobalStudioHeader";
 
 export interface SecretItem {
   key: string;
@@ -18,24 +19,18 @@ interface EnvironmentSecretsPanelProps {
   onSetCustomApiKey?: (key: string) => void;
   groqApiKey?: string;
   onSetGroqApiKey?: (key: string) => void;
+  onBack?: () => void;
+  onToggleSidebar?: () => void;
 }
-
-const DEFAULT_PRESETS: { key: string; label: string; placeholder: string; desc: string }[] = [
-  { key: "OPENROUTER_API_KEY", label: "OpenRouter API Key", placeholder: "sk-or-v1-...", desc: "Required for Gothwad AI & OpenRouter LLMs" },
-  { key: "GROQ_API_KEY", label: "Groq API Key", placeholder: "gsk_...", desc: "Fast inference models via Groq Cloud" },
-  { key: "GEMINI_API_KEY", label: "Google Gemini Key", placeholder: "AIzaSy...", desc: "Gemini 2.0 & Flash API capabilities" },
-  { key: "GITHUB_TOKEN", label: "GitHub Personal Token", placeholder: "ghp_...", desc: "GitHub repository sync & commit actions" },
-  { key: "VITE_API_BASE_URL", label: "API Base URL", placeholder: "https://api.example.com", desc: "Client-side backend proxy target" },
-  { key: "STRIPE_SECRET_KEY", label: "Stripe Secret Key", placeholder: "sk_test_...", desc: "Payment checkout proxy key" },
-  { key: "FIREBASE_API_KEY", label: "Firebase Web API Key", placeholder: "AIzaSy...", desc: "Firestore & Authentication credentials" }
-];
 
 export default function EnvironmentSecretsPanel({
   accentColor = "#375a7f",
   customApiKey = "",
   onSetCustomApiKey,
   groqApiKey = "",
-  onSetGroqApiKey
+  onSetGroqApiKey,
+  onBack,
+  onToggleSidebar
 }: EnvironmentSecretsPanelProps) {
   // Load secrets from safeStorage
   const [secrets, setSecrets] = useState<SecretItem[]>(() => {
@@ -50,10 +45,8 @@ export default function EnvironmentSecretsPanel({
     }
     // Default initial secrets list
     return [
-      { key: "OPENROUTER_API_KEY", value: customApiKey || safeStorage.getItem("gothwad_openrouter_api_key") || "", description: "Active LLM engine key", isCustom: false },
-      { key: "GROQ_API_KEY", value: groqApiKey || safeStorage.getItem("gothwad_groq_api_key") || "", description: "Ultra-fast Groq LLM inference", isCustom: false },
-      { key: "VITE_API_BASE_URL", value: "https://api.gothwad.ai/v1", description: "Default proxy backend URL", isCustom: false },
-      { key: "NODE_ENV", value: "development", description: "Container runtime mode", isCustom: false }
+      { key: "API_KEY", value: customApiKey || safeStorage.getItem("gothwad_openrouter_api_key") || "", description: "Active API key", isCustom: false },
+      { key: "VITE_API_BASE_URL", value: "https://api.gothwad.ai/v1", description: "Default proxy target URL", isCustom: false }
     ];
   });
 
@@ -75,10 +68,9 @@ export default function EnvironmentSecretsPanel({
     try {
       safeStorage.setItem("gothwad_env_secrets", JSON.stringify(secrets));
       
-      // Keep main API keys in sync
-      const openRouterSecret = secrets.find(s => s.key === "OPENROUTER_API_KEY");
-      if (openRouterSecret && onSetCustomApiKey) {
-        onSetCustomApiKey(openRouterSecret.value);
+      const apiKeySecret = secrets.find(s => s.key === "API_KEY" || s.key === "OPENROUTER_API_KEY");
+      if (apiKeySecret && onSetCustomApiKey) {
+        onSetCustomApiKey(apiKeySecret.value);
       }
 
       const groqSecret = secrets.find(s => s.key === "GROQ_API_KEY");
@@ -112,27 +104,13 @@ export default function EnvironmentSecretsPanel({
       if (exists) {
         return prev.map(item => item.key === formattedKey ? { ...item, value: newValue, description: newDesc || item.description } : item);
       }
-      return [...prev, { key: formattedKey, value: newValue, description: newDesc || "Custom environment variable", isCustom: true }];
+      return [...prev, { key: formattedKey, value: newValue, description: newDesc || "Environment variable", isCustom: true }];
     });
 
     setNewKey("");
     setNewValue("");
     setNewDesc("");
     setShowAddModal(false);
-  };
-
-  const handleSelectPreset = (preset: typeof DEFAULT_PRESETS[0]) => {
-    setNewKey(preset.key);
-    setNewDesc(preset.desc);
-
-    // If key already exists, load current value
-    const existing = secrets.find(s => s.key === preset.key);
-    if (existing) {
-      setNewValue(existing.value);
-    } else {
-      setNewValue("");
-    }
-    setShowAddModal(true);
   };
 
   const handleImportEnvText = () => {
@@ -147,7 +125,6 @@ export default function EnvironmentSecretsPanel({
       if (eqIndex > 0) {
         const k = trimmed.substring(0, eqIndex).trim().toUpperCase().replace(/[^A-Z0-9_]/g, "_");
         let v = trimmed.substring(eqIndex + 1).trim();
-        // Remove quotes if present
         if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
           v = v.substring(1, v.length - 1);
         }
@@ -156,7 +133,7 @@ export default function EnvironmentSecretsPanel({
           if (idx >= 0) {
             parsedSecrets[idx] = { ...parsedSecrets[idx], value: v };
           } else {
-            parsedSecrets.push({ key: k, value: v, description: "Imported from .env", isCustom: true });
+            parsedSecrets.push({ key: k, value: v, description: "Imported variable", isCustom: true });
           }
         }
       }
@@ -188,108 +165,75 @@ export default function EnvironmentSecretsPanel({
   );
 
   return (
-    <div className="w-full space-y-5 font-sans">
+    <div className="w-full font-sans select-none flex flex-col h-full overflow-hidden">
       
-      {/* Top Header Card */}
-      <div className="bg-zinc-930/90 border border-zinc-850 p-4 rounded-xl shadow-lg relative overflow-hidden">
-        <div className="flex items-start justify-between gap-3 relative z-10">
-          <div className="flex items-center gap-3">
-            <div 
-              className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-md shrink-0"
-              style={{ background: `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}cc 100%)` }}
-            >
-              <Key className="w-5 h-5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-zinc-100">Environment Secrets & Keys</h3>
-                <span className="text-[8px] font-bold font-mono px-2 py-0.5 rounded-full bg-emerald-950/60 border border-emerald-800/50 text-emerald-400 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  Active In Preview
-                </span>
-              </div>
-              <p className="text-[9.5px] font-mono text-zinc-500 mt-1">
-                Environment variables injected into server process, runtime client & web containers.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
+      {/* Top Floating Global Studio Header */}
+      <GlobalStudioHeader
+        title="ENVIRONMENT SELECT"
+        badge="Manage your keys"
+        onToggleSidebar={onToggleSidebar}
+        rightContent={
+          <div className="flex items-center gap-1.5 shrink-0">
+            {/* Plus Icon Button */}
             <button
-              onClick={() => copyToClipboard(exportEnvFormat())}
-              className="px-2.5 py-1.5 bg-zinc-900 hover:bg-zinc-850 text-zinc-300 hover:text-white border border-zinc-800 rounded-lg text-[10px] font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer"
-              title="Copy all secrets as formatted .env file"
+              type="button"
+              onClick={() => {
+                setNewKey("");
+                setNewValue("");
+                setNewDesc("");
+                setShowAddModal(true);
+              }}
+              className="p-2 bg-zinc-950 hover:bg-zinc-850 text-zinc-300 hover:text-white border border-zinc-800 rounded-xl transition-all shrink-0 cursor-pointer active:scale-95 flex items-center justify-center"
+              title="Add New Secret"
             >
-              {copiedEnv ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-              <span>{copiedEnv ? "Copied .env!" : "Copy .env"}</span>
+              <Plus className="w-4 h-4 text-emerald-400" />
             </button>
+
+            {/* Import Icon Button */}
             <button
+              type="button"
               onClick={() => setShowImportModal(true)}
-              className="px-2.5 py-1.5 bg-zinc-900 hover:bg-zinc-850 text-zinc-300 hover:text-white border border-zinc-800 rounded-lg text-[10px] font-mono font-bold flex items-center gap-1.5 transition-all cursor-pointer"
-              title="Import .env formatted text"
+              className="p-2 bg-zinc-950 hover:bg-zinc-850 text-zinc-300 hover:text-white border border-zinc-800 rounded-xl transition-all shrink-0 cursor-pointer active:scale-95 flex items-center justify-center"
+              title="Import .env"
             >
-              <Upload className="w-3.5 h-3.5" />
-              <span>Import</span>
+              <Upload className="w-4 h-4 text-indigo-400" />
+            </button>
+
+            {/* Export / Copy .env Icon Button */}
+            <button
+              type="button"
+              onClick={() => copyToClipboard(exportEnvFormat())}
+              className="p-2 bg-zinc-950 hover:bg-zinc-850 text-zinc-300 hover:text-white border border-zinc-800 rounded-xl transition-all shrink-0 cursor-pointer active:scale-95 flex items-center justify-center"
+              title="Export / Copy .env"
+            >
+              {copiedEnv ? <Check className="w-4 h-4 text-emerald-400" /> : <Download className="w-4 h-4 text-blue-400" />}
             </button>
           </div>
-        </div>
-      </div>
+        }
+      />
 
-      {/* Preset Quick Add Chips */}
-      <div className="space-y-1.5">
-        <span className="text-[9px] font-mono font-bold text-zinc-500 uppercase tracking-wider block">Quick Presets</span>
-        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1">
-          {DEFAULT_PRESETS.map(preset => {
-            const isSet = secrets.some(s => s.key === preset.key && s.value.length > 0);
-            return (
-              <button
-                key={preset.key}
-                onClick={() => handleSelectPreset(preset)}
-                className={`px-2.5 py-1.5 rounded-lg border text-[9.5px] font-mono font-semibold flex items-center gap-1.5 shrink-0 transition-all cursor-pointer ${
-                  isSet 
-                    ? "bg-emerald-950/20 border-emerald-800/40 text-emerald-300 hover:bg-emerald-900/30" 
-                    : "bg-zinc-900/70 border-zinc-800 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-850"
-                }`}
-              >
-                {isSet ? <Check className="w-3 h-3 text-emerald-400" /> : <Plus className="w-3 h-3 text-zinc-500" />}
-                <span>{preset.key}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      {/* Main Body */}
+      <div className="flex-1 overflow-y-auto no-scrollbar p-3 sm:p-4">
+        <div className="max-w-3xl mx-auto space-y-4">
+          {/* Search Bar & Filter */}
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search keys..."
+              className="w-full bg-zinc-900 border border-zinc-850 text-zinc-200 placeholder-zinc-600 rounded-xl px-3 py-2 text-[10.5px] font-mono focus:outline-none focus:border-zinc-700 transition-all"
+            />
+          </div>
 
-      {/* Search Bar & Add Button */}
-      <div className="flex items-center justify-between gap-2">
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Filter secrets by key name or description..."
-          className="flex-1 bg-zinc-900 border border-zinc-850 text-zinc-200 placeholder-zinc-600 rounded-xl px-3 py-2 text-[10.5px] font-mono focus:outline-none focus:border-zinc-700 transition-all"
-        />
-        <button
-          onClick={() => {
-            setNewKey("");
-            setNewValue("");
-            setNewDesc("");
-            setShowAddModal(true);
-          }}
-          className="px-3.5 py-2 bg-zinc-100 hover:bg-white text-zinc-950 rounded-xl text-[10.5px] font-mono font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Secret</span>
-        </button>
-      </div>
-
-      {/* Secrets List */}
-      <div className="space-y-2.5">
+          {/* Secrets List */}
+      <div className="space-y-2">
         {filteredSecrets.length === 0 ? (
           <div className="bg-zinc-930/40 border border-dashed border-zinc-850 rounded-xl p-8 text-center space-y-2">
             <Lock className="w-6 h-6 text-zinc-600 mx-auto" />
-            <p className="text-xs font-mono text-zinc-400 font-bold">No secrets found</p>
+            <p className="text-xs font-mono text-zinc-400 font-bold">No keys found</p>
             <p className="text-[10px] font-mono text-zinc-600 max-w-sm mx-auto">
-              Add your API credentials or environment parameters using the "Add Secret" button above.
+              Add environment variables using the plus (+) button above.
             </p>
           </div>
         ) : (
@@ -309,7 +253,7 @@ export default function EnvironmentSecretsPanel({
                     </span>
                     {hasValue ? (
                       <span className="text-[7.5px] font-mono font-bold uppercase px-1.5 py-0.5 rounded bg-emerald-950/50 border border-emerald-900/40 text-emerald-400">
-                        Configured
+                        Set
                       </span>
                     ) : (
                       <span className="text-[7.5px] font-mono font-bold uppercase px-1.5 py-0.5 rounded bg-amber-950/50 border border-amber-900/40 text-amber-400">
@@ -355,7 +299,7 @@ export default function EnvironmentSecretsPanel({
                     type={isVisible ? "text" : "password"}
                     value={item.value}
                     onChange={(e) => handleUpdateValue(item.key, e.target.value)}
-                    placeholder={`Enter value for ${item.key}...`}
+                    placeholder={`Value for ${item.key}...`}
                     className="w-full bg-zinc-950/80 border border-zinc-800 text-zinc-200 text-[10.5px] font-mono rounded-lg px-3 py-1.5 focus:outline-none focus:border-zinc-650 transition-all"
                   />
                 </div>
@@ -363,6 +307,8 @@ export default function EnvironmentSecretsPanel({
             );
           })
         )}
+      </div>
+        </div>
       </div>
 
       {/* Add Secret Modal */}
@@ -372,7 +318,7 @@ export default function EnvironmentSecretsPanel({
             <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
               <div className="flex items-center gap-2">
                 <Key className="w-4 h-4 text-emerald-400" />
-                <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-white">Add Environment Variable</h3>
+                <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-white">Add Key</h3>
               </div>
               <button 
                 onClick={() => setShowAddModal(false)}
@@ -390,19 +336,19 @@ export default function EnvironmentSecretsPanel({
                   required
                   value={newKey}
                   onChange={(e) => setNewKey(e.target.value)}
-                  placeholder="e.g. STRIPE_SECRET_KEY"
+                  placeholder="e.g. API_KEY"
                   className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl p-2.5 text-xs focus:outline-none focus:border-zinc-600"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] text-zinc-400 uppercase font-bold">Secret Value</label>
+                <label className="text-[10px] text-zinc-400 uppercase font-bold">Value</label>
                 <input
                   type="text"
                   required
                   value={newValue}
                   onChange={(e) => setNewValue(e.target.value)}
-                  placeholder="Enter token, API key, or string..."
+                  placeholder="Enter key value..."
                   className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl p-2.5 text-xs focus:outline-none focus:border-zinc-600"
                 />
               </div>
@@ -413,7 +359,7 @@ export default function EnvironmentSecretsPanel({
                   type="text"
                   value={newDesc}
                   onChange={(e) => setNewDesc(e.target.value)}
-                  placeholder="e.g. Production Stripe secret credential"
+                  placeholder="Short description..."
                   className="w-full bg-zinc-950 border border-zinc-800 text-white rounded-xl p-2.5 text-xs focus:outline-none focus:border-zinc-600"
                 />
               </div>
@@ -430,7 +376,7 @@ export default function EnvironmentSecretsPanel({
                   type="submit"
                   className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer"
                 >
-                  Save Secret
+                  Save Key
                 </button>
               </div>
             </form>
@@ -445,7 +391,7 @@ export default function EnvironmentSecretsPanel({
             <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
               <div className="flex items-center gap-2">
                 <Upload className="w-4 h-4 text-indigo-400" />
-                <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-white">Import .env File Block</h3>
+                <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-white">Import .env Block</h3>
               </div>
               <button 
                 onClick={() => setShowImportModal(false)}
@@ -456,14 +402,10 @@ export default function EnvironmentSecretsPanel({
             </div>
 
             <div className="space-y-3 font-mono text-xs">
-              <p className="text-[10px] text-zinc-400 leading-relaxed">
-                Paste raw lines from your <code className="bg-zinc-950 px-1 py-0.5 rounded text-amber-400">.env</code> or <code className="bg-zinc-950 px-1 py-0.5 rounded text-amber-400">.env.local</code> file below. Existing matching keys will be updated automatically.
-              </p>
-
               <textarea
                 value={envTextImport}
                 onChange={(e) => setEnvTextImport(e.target.value)}
-                placeholder={`# Paste .env content here\nOPENROUTER_API_KEY=sk-or-v1-...\nGROQ_API_KEY=gsk_...\nPORT=3000`}
+                placeholder={`KEY_NAME=value\nANOTHER_KEY=value`}
                 className="w-full h-40 bg-zinc-950 border border-zinc-800 text-zinc-200 p-3 rounded-xl text-xs font-mono focus:outline-none focus:border-zinc-650 resize-none"
               />
 
@@ -480,7 +422,7 @@ export default function EnvironmentSecretsPanel({
                   onClick={handleImportEnvText}
                   className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold shadow-md cursor-pointer"
                 >
-                  Parse & Import Secrets
+                  Import Keys
                 </button>
               </div>
             </div>

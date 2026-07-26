@@ -26,6 +26,8 @@ interface IntegrationsPanelProps {
   onTriggerOAuth: () => void;
   authConfig: any;
   accentColor: string;
+  onBack?: () => void;
+  onToggleSidebar?: () => void;
 }
 
 export default function IntegrationsPanel({
@@ -38,7 +40,9 @@ export default function IntegrationsPanel({
   onPatSubmit,
   onTriggerOAuth,
   authConfig,
-  accentColor
+  accentColor,
+  onBack,
+  onToggleSidebar
 }: IntegrationsPanelProps) {
   
   // Tab States depend on chosen activity bar mode
@@ -480,8 +484,12 @@ export default function IntegrationsPanel({
 
       {/* ================== 3. ENVIRONMENT SECRETS MODE PANEL ================== */}
       {mode === "secrets" && (
-        <div className="flex-1 overflow-y-auto p-3.5 space-y-4 no-scrollbar">
-          <EnvironmentSecretsPanel accentColor={accentColor} />
+        <div className="flex-1 flex flex-col h-full overflow-hidden">
+          <EnvironmentSecretsPanel 
+            accentColor={accentColor} 
+            onBack={onBack}
+            onToggleSidebar={onToggleSidebar}
+          />
         </div>
       )}
 

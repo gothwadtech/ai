@@ -295,14 +295,11 @@ export default function MobileLayout({
                 )}
 
                 {activeSection === "secrets" && (
-                  <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-zinc-955">
-                    <div className="flex items-center justify-between border-b border-zinc-850 pb-2 mb-2">
-                      <h2 className="text-xs font-mono font-bold tracking-tight text-zinc-300 uppercase">Environment Secrets</h2>
-                    </div>
+                  <div className="flex-1 flex flex-col h-full overflow-hidden bg-zinc-955">
                     <React.Suspense fallback={
                       <div className="flex h-32 flex-col items-center justify-center gap-2 text-zinc-500 font-mono text-xs">
                         <div className="h-4 w-4 animate-spin rounded-full border-t border-zinc-500" style={{ borderTopColor: accentColor }} />
-                        <span className="animate-pulse text-[10px]">LOADING SECRETS VAULT...</span>
+                        <span className="animate-pulse text-[10px]">LOADING SECRETS...</span>
                       </div>
                     }>
                       <IntegrationsPanel
@@ -316,6 +313,8 @@ export default function MobileLayout({
                         onTriggerOAuth={onTriggerOAuth}
                         authConfig={authConfig}
                         accentColor={accentColor}
+                        onBack={() => setActiveSection("explorer")}
+                        onToggleSidebar={() => setIsLeftDrawerOpen(!isLeftDrawerOpen)}
                       />
                     </React.Suspense>
                   </div>

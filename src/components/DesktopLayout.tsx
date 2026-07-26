@@ -277,55 +277,28 @@ export default function DesktopLayout({
 
     if (activeSection === "secrets") {
       return (
-        <div className="flex-1 flex flex-col overflow-hidden bg-zinc-950 p-6 font-sans">
-          <div className="max-w-4xl w-full mx-auto flex-1 flex flex-col overflow-hidden bg-zinc-900 border border-zinc-850 rounded-2xl shadow-2xl animate-[fadeIn_0.15s_ease-out]">
-            {/* Header */}
-            <div className="px-6 py-5 border-b border-zinc-850 flex items-center justify-between bg-zinc-930/40">
-              <div className="flex items-center gap-3">
-                <div 
-                  className="w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-md"
-                  style={{ background: `linear-gradient(135deg, ${accentColor} 0%, ${accentColor}aa 100%)` }}
-                >
-                  <Key className="w-5 h-5" />
-                </div>
-                <div>
-                  <h2 className="text-sm font-mono font-bold uppercase tracking-tight text-white">Environment Secrets</h2>
-                  <p className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider mt-1">Manage .env parameters, API keys & container process secrets</p>
-                </div>
-              </div>
-              {/* Quick Back Button */}
-              <button 
-                onClick={() => setActiveSection("explorer")}
-                className="px-3 py-1.5 bg-zinc-800 hover:bg-zinc-750 text-zinc-300 rounded-lg text-xs font-mono border border-zinc-750 hover:text-white transition-all cursor-pointer"
-              >
-                ← Back to Editor
-              </button>
+        <div className="flex-1 flex flex-col overflow-hidden bg-zinc-950 font-sans">
+          <React.Suspense fallback={
+            <div className="flex h-32 flex-col items-center justify-center gap-2 text-zinc-500 font-mono text-xs">
+              <div className="h-4 w-4 animate-spin rounded-full border-t border-zinc-500" style={{ borderTopColor: accentColor }} />
+              <span className="animate-pulse text-[10px]">LOADING SECRETS...</span>
             </div>
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6 no-scrollbar">
-              <div className="max-w-2xl mx-auto">
-                <React.Suspense fallback={
-                  <div className="flex h-32 flex-col items-center justify-center gap-2 text-zinc-500 font-mono text-xs">
-                    <div className="h-4 w-4 animate-spin rounded-full border-t border-zinc-500" style={{ borderTopColor: accentColor }} />
-                    <span className="animate-pulse text-[10px]">LOADING SECRETS VAULT...</span>
-                  </div>
-                }>
-                  <IntegrationsPanel
-                    mode="secrets"
-                    token={token}
-                    user={user}
-                    onLogout={logout}
-                    patInput={patInput}
-                    onPatInputChange={onPatInputChange}
-                    onPatSubmit={onPatSubmit}
-                    onTriggerOAuth={onTriggerOAuth}
-                    authConfig={authConfig}
-                    accentColor={accentColor}
-                  />
-                </React.Suspense>
-              </div>
-            </div>
-          </div>
+          }>
+            <IntegrationsPanel
+              mode="secrets"
+              token={token}
+              user={user}
+              onLogout={logout}
+              patInput={patInput}
+              onPatInputChange={onPatInputChange}
+              onPatSubmit={onPatSubmit}
+              onTriggerOAuth={onTriggerOAuth}
+              authConfig={authConfig}
+              accentColor={accentColor}
+              onBack={() => setActiveSection("explorer")}
+              onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+            />
+          </React.Suspense>
         </div>
       );
     }
@@ -455,50 +428,6 @@ export default function DesktopLayout({
             </React.Suspense>
           ) : (
             <div className="flex-1 flex flex-col overflow-hidden">
-              {/* TOP HEADER BAR FOR SOFTWARE BUILDER */}
-              <div className="pt-1 pb-0.5 px-2 sm:px-3 shrink-0 select-none w-full">
-                <div className="max-w-3xl mx-auto w-full">
-                  <div className="relative border border-zinc-800/80 rounded-2xl bg-zinc-900/90 backdrop-blur-md px-2 h-[54px] flex items-center justify-between gap-2 shadow-xl">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-[11.5px] font-mono font-bold text-zinc-100 uppercase tracking-tight truncate">
-                        Software Builder
-                      </span>
-                      <span className="text-[9px] font-mono px-2 py-0.5 bg-zinc-850 text-zinc-400 rounded-md border border-zinc-750 shrink-0 uppercase font-semibold">
-                        Workspace IDE
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 shrink-0">
-                    <button
-                      onClick={() => setActiveSection("secrets")}
-                      className={`px-2.5 py-1 rounded-lg text-[10.5px] font-mono border transition-all flex items-center gap-1.5 cursor-pointer ${
-                        activeSection === "secrets"
-                          ? "bg-amber-500/10 text-amber-400 border-amber-500/30 font-bold"
-                          : "bg-zinc-900 hover:bg-zinc-850 text-zinc-400 hover:text-zinc-200 border border-zinc-800"
-                      }`}
-                    >
-                      <Key className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">Environment Secrets</span>
-                    </button>
-
-                    <button
-                      onClick={handleToggleAiPanel}
-                      className={`px-2.5 py-1 rounded-lg text-[10.5px] font-mono border transition-all flex items-center gap-1.5 cursor-pointer ${
-                        aiPanelOpen
-                          ? "bg-purple-500/10 text-purple-400 border-purple-500/30 font-bold"
-                          : "bg-zinc-900 hover:bg-zinc-850 text-zinc-400 hover:text-zinc-200 border border-zinc-800"
-                      }`}
-                    >
-                      <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-                      <span className="hidden sm:inline">AI Coding Assistant</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-              </div>
-
               {/* Upper Main Editor Workspace Row */}
               <div className="flex-1 flex overflow-hidden max-w-full">
                 
